@@ -9660,7 +9660,7 @@ try:
 except:
     pass
 
-def initChannel(ch):
+async def initChannel(ch):
     C[ch] = {}
     C[ch]["started"] = False
     C[ch]["playerMenu"] = False
@@ -9688,7 +9688,7 @@ def initChannel(ch):
     C[ch]["mid"] = []
     C[ch]["msg"] = None
 
-def shuffle(ch):
+async def shuffle(ch):
     global C
 
     newDeck = []
@@ -9704,7 +9704,7 @@ def shuffle(ch):
         C[ch]["white"] = C[ch]["white"][:rm] + C[ch]["white"][rm+1:]
     C[ch]["white"] = newDeck
 
-def nextBlack(ch):
+async def nextBlack(ch):
     global C
     
     card = C[ch]["black"][0]
@@ -9713,7 +9713,7 @@ def nextBlack(ch):
         C[ch]["black"].append(C[ch]["curr"])
     return card
 
-def reset(ch):
+async def reset(ch):
     global C
     
     C[ch]["started"] = False

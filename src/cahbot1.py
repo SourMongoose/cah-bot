@@ -37,16 +37,16 @@ async def start_(ch):
     # add blanks
     for i in range(config.C[ch]["blanks"]): config.C[ch]["white"].append("")
     
-    config.shuffle(ch)
+    await config.shuffle(ch)
     await deal(ch)
     
-    config.C[ch]["curr"] = config.nextBlack(ch)
+    config.C[ch]["curr"] = await config.nextBlack(ch)
     
     config.C[ch]["pov"] = 0
 
 async def pass_(ch):
     config.C[ch]["pov"] = (config.C[ch]["pov"]+1)%config.C[ch]["nPlayers"]
-    config.C[ch]["curr"] = config.nextBlack(ch)
+    config.C[ch]["curr"] = await config.nextBlack(ch)
     config.C[ch]["mid"] = []
     config.C[ch]["msg"] = None
     
@@ -328,10 +328,10 @@ async def removePlayer(ch, p):
         
         await displayMid(ch)
     if config.C[ch]["nPlayers"] < 2:
-        config.reset(ch)
+        await config.reset(ch)
         await client.send_message(ch, "Not enough players, game has been reset.")
 
-def get_start_msg(ch):
+async def get_start_msg(ch):
     c = config.pre[ch.id] if ch.id in config.pre else 'c'
     
     s = ("Use `"+c+"!join` to join (and `"+c+"!leave` if you have to go)!\n"
@@ -348,7 +348,8 @@ def get_start_msg(ch):
 async def edit_start_msg(ch):
     if not config.C[ch]["playerMenu"]: return
     
-    await client.edit_message(config.C[ch]["msg"], get_start_msg(ch))
+    s = await get_start_msg(ch)
+    await client.edit_message(config.C[ch]["msg"], s)
 
 @client.event
 async def on_ready():
@@ -383,7 +384,7 @@ async def on_message(message):
     
     if ch not in config.C:
         config.C[ch] = {}
-        config.initChannel(ch)
+        await config.initChannel(ch)
     
     # warning
     if len(msg) > 9 and msg[:9] == c+"!warning" and au.id == "252249185112293376":
@@ -444,7 +445,8 @@ async def on_message(message):
             if not config.C[ch]["playerMenu"]:
                 config.C[ch]["playerMenu"] = True
                 config.C[ch]["players"].append(au)
-                config.C[ch]["msg"] = await client.send_message(ch, get_start_msg(ch))
+                s = await get_start_msg(ch)
+                config.C[ch]["msg"] = await client.send_message(ch, s)
                 output = str(len(config.C[ch]["players"])) + "/20 Players:"
                 for usr in config.C[ch]["players"]:
                     output += ' ' + usr.mention
@@ -603,7 +605,7 @@ async def on_message(message):
                             
                             break
             elif msg == c+"!reset":
-                config.reset(ch)
+                await config.reset(ch)
                 await client.send_message(ch, "Game reset!")
         else:
             if msg == c+"!join":
@@ -648,7 +650,7 @@ async def on_reaction_add(reaction, user):
                 
                 if config.C[ch]["win"] in config.C[ch]["score"]:
                     await displayWinners(ch)
-                    config.reset(ch)
+                    await config.reset(ch)
             except:
                 print("\nError with answer selection\n" + time.asctime() + "\n")
 
@@ -677,7 +679,7 @@ async def timer_check():
                             
                             if config.C[ch]["win"] in config.C[ch]["score"]:
                                 await displayWinners(ch)
-                                config.reset(ch)
+                                await config.reset(ch)
                         except:
                             print("\nError with answer selection\n" + time.asctime() + "\n")
                     else:
