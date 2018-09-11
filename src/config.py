@@ -1,6 +1,8 @@
 import random
 
 changelog = (
+    "**9/11/18 Update:**\n"
+    "- `c!commands` now directly shows the list of commands\n\n"
     "**9/3/18 Update:**\n"
     "- Packs/timer/blanks/etc. will no longer be reset after each game\n"
     "- List of current packs is now shown\n"
@@ -49,6 +51,37 @@ changelog = (
     "- Added the `c!whatsnew` command\n"
     "- Added a bunch more config.packs"
 )
+
+commands = """**List of available commands:**
+
+Global commands:
+• c!help - Brings up a help message
+• c!whatsnew - Show the changelog
+• c!commands - Show a list of all commands
+• c!support - Brings up a link to the support server
+• c!prefix <letter> - Change command prefix to given letter
+
+Pre-game commands:
+• c!start - Start a game of Cards Against Humanity
+• c!cancel - Cancel a game of CAH
+• c!add <pack(s)> - Add a pack (use "c!add all" to add all available packs)
+• c!remove/c!rm <pack(s)> - Remove a pack (use 'base' for original pack)
+• c!packs - Show a list of all available packs
+• c!contents <pack> - Show all cards in a certain pack
+• c!setwin <points> - Set number of points needed to win
+• c!timer <seconds> - Set idle timer
+• c!setblank <blanks> - Set number of blank cards
+• c!join - Join a game of CAH
+• c!leave - Leave a game of CAH
+
+Ongoing game commands:
+• c!play/c!p <card(s)> - Play the selected cards
+• c!display - Re-display the current scoreboard/black card
+• c!reset - Reset an ongoing game of CAH
+• c!join - Join the current game
+• c!leave - Leave the current game
+• c!kick <player> - Vote to kick a player
+"""
 
 last_update = 0
 

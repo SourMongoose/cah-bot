@@ -1,6 +1,8 @@
 import random
 
 changelog = (
+    "**9/11/18 Update:**\n"
+    "- `c!commands` now directly shows the list of commands\n\n"
     "**9/3/18 Update:**\n"
     "- Packs/timer/blanks/etc. will no longer be reset after each game\n"
     "- List of current packs is now shown\n"
@@ -19,36 +21,67 @@ changelog = (
     "**8/16/18 Update:**\n"
     "- Added option for custom prefix with `c!prefix`\n\n"
     "**8/15/18 Update:**\n"
-	"- Added `c!support` to bring up a link to the support server\n\n"
+    "- Added `c!support` to bring up a link to the support server\n\n"
     "**8/13/18 Update:**\n"
-	"- Added `c!kick` for those pesky AFKs!\n"
-	"- Fixed bug where cards played were not being shuffled\n\n"
+    "- Added `c!kick` for those pesky AFKs!\n"
+    "- Fixed bug where cards played were not being shuffled\n\n"
     "**8/10/18 Update:**\n"
-	"- Changed format of hand sent\n\n"
+    "- Changed format of hand sent\n\n"
     "**8/6/18 Update:**\n"
-	"- Added blank cards! Use `c!setblank` to add blank cards to your game\n"
-	"- Commas and spaces are now allowed when playing multiple cards\n\n"
+    "- Added blank cards! Use `c!setblank` to add blank cards to your game\n"
+    "- Commas and spaces are now allowed when playing multiple cards\n\n"
     "**8/3/18 Update:**\n"
-	"- Added error message when bot is unable to send a player their hand\n\n"
+    "- Added error message when bot is unable to send a player their hand\n\n"
     "**7/27/18 Update:**\n"
-	"- Added a whole bunch of third party config.packs!\n"
-	"- Made adding config.packs a bit faster\n"
-	"- Updated `c!config.packs` with number of cards in each pack\n"
-	"- Separated official CAH config.packs from third party config.packs\n\n"
+    "- Added a whole bunch of third party config.packs!\n"
+    "- Made adding config.packs a bit faster\n"
+    "- Updated `c!config.packs` with number of cards in each pack\n"
+    "- Separated official CAH config.packs from third party config.packs\n\n"
     "**7/18/18 Update:**\n"
-	"- Added Holiday config.packs, PAX config.packs, and more\n"
-	"- Added `c!config.packs` and `c!contents` commands\n"
-	"- Fixed bug where language would randomly switch to Portuguese\n\n"
+    "- Added Holiday config.packs, PAX config.packs, and more\n"
+    "- Added `c!config.packs` and `c!contents` commands\n"
+    "- Fixed bug where language would randomly switch to Portuguese\n\n"
     "**7/16/18 Update:**\n"
-	"- Added Spanish as a language option\n"
-	"- Added the `c!commands` command\n\n"
+    "- Added Spanish as a language option\n"
+    "- Added the `c!commands` command\n\n"
     "**7/14/18 Update:**\n"
-	"- Added even more config.packs!\n"
-	"- Fixed bug where game would freeze if czar left\n\n"
+    "- Added even more config.packs!\n"
+    "- Fixed bug where game would freeze if czar left\n\n"
     "**7/11/18 Update:**\n"
-	"- Added the `c!whatsnew` command\n"
-	"- Added a bunch more config.packs"
+    "- Added the `c!whatsnew` command\n"
+    "- Added a bunch more config.packs"
 )
+
+commands = """**List of available commands:**
+
+Global commands:
+• c!help - Brings up a help message
+• c!whatsnew - Show the changelog
+• c!commands - Show a list of all commands
+• c!support - Brings up a link to the support server
+• c!prefix <letter> - Change command prefix to given letter
+
+Pre-game commands:
+• c!start - Start a game of Cards Against Humanity
+• c!cancel - Cancel a game of CAH
+• c!add <pack(s)> - Add a pack (use "c!add all" to add all available packs)
+• c!remove/c!rm <pack(s)> - Remove a pack (use 'base' for original pack)
+• c!packs - Show a list of all available packs
+• c!contents <pack> - Show all cards in a certain pack
+• c!setwin <points> - Set number of points needed to win
+• c!timer <seconds> - Set idle timer
+• c!setblank <blanks> - Set number of blank cards
+• c!join - Join a game of CAH
+• c!leave - Leave a game of CAH
+
+Ongoing game commands:
+• c!play/c!p <card(s)> - Play the selected cards
+• c!display - Re-display the current scoreboard/black card
+• c!reset - Reset an ongoing game of CAH
+• c!join - Join the current game
+• c!leave - Leave the current game
+• c!kick <player> - Vote to kick a player
+"""
 
 last_update = 0
 

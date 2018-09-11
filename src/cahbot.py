@@ -406,7 +406,8 @@ async def on_message(message):
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
-        await client.send_message(ch, "You can find a list of available commands here:\nhttps://discordbots.org/bot/429024440060215296")
+        await client.send_message(ch, config.commands)
+        #await client.send_message(ch, "You can find a list of available commands here:\nhttps://discordbots.org/bot/429024440060215296")
     
     # support server
     if msg == c+"!support" or msg == c+"!server" or msg == c+"!supp":
