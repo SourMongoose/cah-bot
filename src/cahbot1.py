@@ -498,14 +498,15 @@ async def on_message(message):
             except:
                 pass
         elif len(msg) > 10 and msg[:10] == c+"!setblank":
-            try:
-                n = int(msg[10:].strip())
-                if 0 <= n <= 30:
-                    config.C[ch]["blanks"] = n
-                    await client.send_message(ch, "Number of blanks has been set to " + str(n) + ".")
-                    await edit_start_msg(ch)
-            except:
-                pass
+            await client.send_message(ch, "Sorry, blank cards are disabled on this server.")
+            #try:
+            #    n = int(msg[10:].strip())
+            #    if 0 <= n <= 30:
+            #        config.C[ch]["blanks"] = n
+            #        await client.send_message(ch, "Number of blanks has been set to " + str(n) + ".")
+            #        await edit_start_msg(ch)
+            #except:
+            #    pass
         elif msg == c+"!packs":
             output = ("**List of available packs:**\n"
                 "(pack code followed by name of pack, then number of black and white cards)\n"
