@@ -2,9 +2,13 @@ import discord
 import asyncio
 import random
 import time
+import sqlite3
 
 import config
 import tokens
+
+conn = sqlite3.connect("messages.db")
+C = conn.cursor()
 
 # https://docs.google.com/spreadsheets/d/1lsy7lIwBe-DWOi2PALZPf5DgXHx9MEvKfRw1GaWQkzg/edit
 
@@ -379,6 +383,10 @@ async def on_message(message):
                         config.C[c]["hands"][i][j] = message.content.replace('*',"\*").replace('_',"\_").replace('~',"\~").replace('`',"\`")
                         await sendHand(c, i)
                         break
+        else:
+            edited_msg = message.content.replace('*',"\*").replace('_',"\_").replace('~',"\~").replace('`',"\`")
+            C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
+            conn.commit()
         
         return
     
