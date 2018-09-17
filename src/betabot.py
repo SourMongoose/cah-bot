@@ -2,9 +2,13 @@ import discord
 import asyncio
 import random
 import time
+import sqlite3
 
 import beta_config as config
 import tokens
+
+conn = sqlite3.connect("messages.db")
+C = conn.cursor()
 
 # https://docs.google.com/spreadsheets/d/1lsy7lIwBe-DWOi2PALZPf5DgXHx9MEvKfRw1GaWQkzg/edit
 
@@ -370,16 +374,9 @@ async def on_message(message):
     
     # fill in blank cards
     if ch.is_private:
-        if au in config.P: # check that user has a blank card
-            for c in config.P[au]: # check all channels that user is in
-                if config.C[c]["started"] and au in config.C[c]["players"]: # check that user is currently playing
-                    i = config.C[c]["players"].index(au)
-                    if "" in config.C[c]["hands"][i]: # check that player has a blank
-                        j = config.C[c]["hands"][i].index("")
-                        config.C[c]["hands"][i][j] = message.content.replace('*',"\*").replace('_',"\_").replace('~',"\~").replace('`',"\`")
-                        await sendHand(c, i)
-                        break
-        
+        edited_msg = message.content.replace('*',"\*").replace('_',"\_").replace('~',"\~").replace('`',"\`")
+        C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
+        conn.commit()
         return
     
     if ch not in config.C:
@@ -699,7 +696,37 @@ async def timer_check():
                         
         await asyncio.sleep(2)
 
+async def blank_check():
+    await client.wait_until_ready()
+    
+    while not client.is_closed:
+        C.execute("""select * from Messages""")
+        msgs = C.fetchall()
+        
+        if len(msgs):
+            print(msgs)
+            print(config.P)
+            
+            for x in msgs:
+                for au in config.P:
+                    if au.id == x[0]:
+                        for c in config.P[au]: # check all channels that user is in
+                            if config.C[c]["started"] and au in config.C[c]["players"]: # check that user is currently playing
+                                i = config.C[c]["players"].index(au)
+                                if "" in config.C[c]["hands"][i]: # check that player has a blank
+                                    j = config.C[c]["hands"][i].index("")
+                                    config.C[c]["hands"][i][j] = x[1]
+                                    await sendHand(c, i)
+                                    break
+            
+            C.execute("""delete from Messages""")
+            conn.commit()
+        
+        await asyncio.sleep(1)
+        
+
 client.loop.create_task(timer_check())
+client.loop.create_task(blank_check())
 
 # beta token
 client.run(tokens.beta_id)
