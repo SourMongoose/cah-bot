@@ -72,9 +72,7 @@ async def addPack(ch,s):
         await addPack(ch, "redbluegreen")
         return
     
-    #await client.send_message(ch, "Adding packs in progress...")
-    
-    success = total = 0
+    success = total = added = 0
     for p in config.packs:
         if p == "cats" and s.count("cats") == s.count("cats2"):
             continue
@@ -87,10 +85,9 @@ async def addPack(ch,s):
                 
                 config.C[ch]["packs"].append(p)
                 
-                #await client.send_message(ch, config.packs[p]+" added!")
                 success += 1
-            #else:
-            #    await client.send_message(ch, "That pack has already been added.")
+            else:
+                added += 1
     for p in config.thirdparty:
         if p in s:
             total += 1
@@ -100,13 +97,14 @@ async def addPack(ch,s):
                 
                 config.C[ch]["packs"].append(p)
                 
-                #await client.send_message(ch, config.thirdparty[p]+" added!")
                 success += 1
-            #else:
-            #    await client.send_message(ch, "That pack has already been added.")
+            else:
+                added += 1
     
     if total:
-        await client.send_message(ch, "Successfully added " + str(success) + " out of " + str(total) + (" packs" if total > 1 else " pack"))
+        msg = "Successfully added " + str(success) + " out of " + str(total) + (" packs" if total > 1 else " pack")
+        if added: msg += "\n" + str(added) + (" packs" if added > 1 else " pack") + " already added"
+        await client.send_message(ch, msg)
         await edit_start_msg(ch)
 
 async def removePack(ch,s):
@@ -292,6 +290,7 @@ async def addPlayer(ch, p):
         config.C[ch]["score"].append(0)
         config.C[ch]["hands"].append([])
         
+        await client.send_message(ch, p.display_name + " has joined the game.")
         await dealOne(ch,config.C[ch]["nPlayers"]-1)
         await displayMid(ch)
     else:
@@ -330,6 +329,7 @@ async def removePlayer(ch, p):
                 config.C[ch]["mid"] = config.C[ch]["mid"][:rm] + config.C[ch]["mid"][rm+1:]
             config.C[ch]["mid"] = mid
         
+        await client.send_message(ch, p.display_name + " has left the game.")
         await displayMid(ch)
     if config.C[ch]["nPlayers"] < 2:
         await config.reset(ch)
