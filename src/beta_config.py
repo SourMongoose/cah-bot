@@ -1,6 +1,11 @@
 import random
 
 changelog = (
+    "**9/21/18 Update:**\n"
+    "- Fixed bug where `c!kick` would not function properly if players joined mid-game\n"
+    "- Server admins can now reset a game even when they are not playing\n\n"
+    "**9/17/18 Update:**\n"
+    "- Blank cards should now be completely functional\n\n"
     "**9/11/18 Update:**\n"
     "- `c!commands` now directly shows the list of commands\n\n"
     "**9/3/18 Update:**\n"

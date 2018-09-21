@@ -32,15 +32,14 @@ async def dealOne(ch,i):
 async def start_(ch):
     config.C[ch]["started"] = True
     
-    for i in range(config.C[ch]["nPlayers"]):
-        i=i
+    for _ in range(config.C[ch]["nPlayers"]):
         config.C[ch]["hands"].append([])
         config.C[ch]["played"].append(False)
         config.C[ch]["score"].append(0)
         config.C[ch]["kick"].append("")
     
     # add blanks
-    for i in range(config.C[ch]["blanks"]): config.C[ch]["white"].append("")
+    for _ in range(config.C[ch]["blanks"]): config.C[ch]["white"].append("")
     
     await config.shuffle(ch)
     await deal(ch)
@@ -291,6 +290,7 @@ async def addPlayer(ch, p):
         config.C[ch]["played"].append(False)
         config.C[ch]["score"].append(0)
         config.C[ch]["hands"].append([])
+        config.C[ch]["kick"].append("")
         
         await client.send_message(ch, p.display_name + " has joined the game.")
         await dealOne(ch,config.C[ch]["nPlayers"]-1)
@@ -310,6 +310,7 @@ async def removePlayer(ch, p, kick=False):
         config.C[ch]["played"] = config.C[ch]["played"][:i]+config.C[ch]["played"][i+1:]
         config.C[ch]["hands"] = config.C[ch]["hands"][:i]+config.C[ch]["hands"][i+1:]
         config.C[ch]["score"] = config.C[ch]["score"][:i]+config.C[ch]["score"][i+1:]
+        config.C[ch]["kick"] = config.C[ch]["kick"][:i]+config.C[ch]["score"][i+1:]
         
         if i < config.C[ch]["pov"]:
             config.C[ch]["pov"] -= 1
@@ -413,7 +414,7 @@ async def on_message(message):
     # changelog
     if msg == c+"!whatsnew" or msg == c+"!update" or msg == c+"!updates":
         s = config.changelog
-        await client.send_message(ch, s[:s.index("**8/18")])
+        await client.send_message(ch, s[:s.index("**9/3")])
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
@@ -588,6 +589,8 @@ async def on_message(message):
                 "To leave an ongoing game, use `"+c+"!leave` or `"+c+"!quit`.\n"
                 "To join an ongoing game, use `"+c+"!join`.\n"
                 "To kick an AFK player, use `"+c+"!kick <player>`."))
+        
+        # player commands
         if au in config.C[ch]["players"]:
             if msg == c+"!display":
                 config.C[ch]["msg"] = None
@@ -625,6 +628,8 @@ async def on_message(message):
                     await addPlayer(ch, au)
                 else:
                     await client.send_message(ch, "Please wait for the czar to pick an answer before joining.")
+        
+        # playing cards
         if len(msg) > 6 and msg[:6] == c+"!play":
             await play(ch,au,msg[6:])
             try:
@@ -637,6 +642,15 @@ async def on_message(message):
                 await client.delete_message(message)
             except:
                 pass
+        
+        # admin override
+        if au.id == "252249185112293376" or au.permissions_in(ch).administrator:
+            if msg == c+"!display":
+                config.C[ch]["msg"] = None
+                await displayMid(ch)
+            elif msg == c+"!reset":
+                await config.reset(ch)
+                await client.send_message(ch, "Game reset!")
 
 @client.event
 async def on_reaction_add(reaction, user):
