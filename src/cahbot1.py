@@ -17,6 +17,7 @@ client = discord.Client(shard_id=1, shard_count=2)
 async def deal(ch):
     for i in range(config.C[ch]["nPlayers"]):
         await dealOne(ch, i)
+    config.C[ch]["time"] = time.time()
 
 async def dealOne(ch,i):
     config.C[ch]["played"][i] = False
@@ -193,6 +194,8 @@ async def play(ch,p,s):
                 mid.append(config.C[ch]["mid"][rm])
                 config.C[ch]["mid"] = config.C[ch]["mid"][:rm] + config.C[ch]["mid"][rm+1:]
             config.C[ch]["mid"] = mid
+            
+            config.C[ch]["time"] = time.time()
         
         await displayMid(ch)
     except:
@@ -295,7 +298,7 @@ async def addPlayer(ch, p):
     else:
         await client.send_message(ch, "Game is at max capacity!")
 
-async def removePlayer(ch, p):
+async def removePlayer(ch, p, kick=False):
     if p in config.C[ch]["players"]:
         i = config.C[ch]["players"].index(p)
         
@@ -328,6 +331,8 @@ async def removePlayer(ch, p):
                 config.C[ch]["mid"] = config.C[ch]["mid"][:rm] + config.C[ch]["mid"][rm+1:]
             config.C[ch]["mid"] = mid
         
+        if not kick:
+            await client.send_message(ch, p.display_name + " has left the game.")
         await displayMid(ch)
     if config.C[ch]["nPlayers"] < 2:
         await config.reset(ch)
@@ -581,16 +586,16 @@ async def on_message(message):
                 else:
                     for i in range(len(config.C[ch]["players"])):
                         p = config.C[ch]["players"][i]
-                        if mt == p.mention and not config.C[ch]["played"][i]:
-                            try:
+                        if mt == p.mention:
+                            if not config.C[ch]["played"][i]:
                                 config.C[ch]["kick"][config.C[ch]["players"].index(au)] = p.mention
                                 cnt = config.C[ch]["kick"].count(p.mention)
                                 await client.send_message(ch, au.mention + " has voted to kick " + p.mention + ". " + str(cnt) + "/" + str(config.C[ch]["nPlayers"]-1) + " votes needed")
                                 if cnt == config.C[ch]["nPlayers"] - 1:
                                     await client.send_message(ch, p.mention + " has been kicked from the game.")
-                                    await removePlayer(ch, p)
-                            except:
-                                pass
+                                    await removePlayer(ch, p, kick=True)
+                            else:
+                                await client.send_message(ch, "This player has already played and cannot be kicked.")
                             
                             break
             elif msg == c+"!reset":
