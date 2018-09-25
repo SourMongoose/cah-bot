@@ -237,7 +237,7 @@ async def play(ch,p,s):
         pass
 
 async def sendHand(ch,i):
-    t = "Your white cards in #" + ch.name + ":"
+    t = "Your white cards in #" + ch.name + " (" + ch.server.name + "):"
     msg = ""
     hasBlank = False
     for card in range(len(config.C[ch]["hands"][i])):
