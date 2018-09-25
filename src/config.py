@@ -1,6 +1,9 @@
 import random
+from cardcast import api
 
 changelog = (
+    "**9/24/18 Update:**\n"
+    "- Added CardCast support\n\n"
     "**9/21/18 Update:**\n"
     "- Fixed bug where `c!kick` would not function properly if players joined mid-game\n"
     "- Server admins can now reset a game even when they are not playing\n\n"
@@ -9768,8 +9771,13 @@ async def reset(ch):
     C[ch]["white"] = list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
     for p in C[ch]["packs"]:
         if p != "base":
-            C[ch]["black"] += list(eval("black_"+p))
-            C[ch]["white"] += list(eval("white_"+p))
+            try:
+                C[ch]["black"] += list(eval("black_"+p))
+                C[ch]["white"] += list(eval("white_"+p))
+            except:
+                b, w = api.get_deck_blacks_json(p), api.get_deck_whites_json(p)
+                C[ch]["black"] += ['_'.join(c["text"]) for c in b]
+                C[ch]["white"] += [''.join(c["text"]) for c in w]
     
     C[ch]["pov"] = 0
     C[ch]["hands"] = []

@@ -4,6 +4,8 @@ import random
 import time
 import sqlite3
 
+from cardcast import api
+
 import beta_config as config
 import tokens
 
@@ -60,6 +62,27 @@ async def pass_(ch):
 async def addPack(ch,s):
     s = s.strip()
     
+    success = total = added = 0
+    
+    # CardCast
+    try:
+        if s not in config.C[ch]["packs"]:
+            b, w = api.get_deck_blacks_json(s), api.get_deck_whites_json(s)
+            config.C[ch]["black"] += ['_'.join(c["text"]) for c in b]
+            config.C[ch]["white"] += [''.join(c["text"]) for c in w]
+            
+            config.C[ch]["packs"].append(s)
+            
+            success += 1
+            total += 1
+        else:
+            added += 1
+            total += 1
+    except:
+        pass
+    
+    s = s.lower()
+    
     if s == "all":
         await addPack(ch, ''.join(x for x in config.packs))
         return
@@ -72,7 +95,6 @@ async def addPack(ch,s):
         await addPack(ch, "redbluegreen")
         return
     
-    success = total = added = 0
     for p in config.packs:
         if p == "cats" and s.count("cats") == s.count("cats2"):
             continue
@@ -108,7 +130,21 @@ async def addPack(ch,s):
         await edit_start_msg(ch)
 
 async def removePack(ch,s):
-    s.strip()
+    s = s.strip()
+    
+    # CardCast
+    try:
+        if s in config.C[ch]["packs"]:
+            b, w = api.get_deck_blacks_json(s), api.get_deck_whites_json(s)
+            config.C[ch]["black"] = [x for x in config.C[ch]["black"] if x not in ['_'.join(c["text"]) for c in b]]
+            config.C[ch]["white"] = [x for x in config.C[ch]["white"] if x not in [''.join(c["text"]) for c in w]]
+            
+            config.C[ch]["packs"].remove(s)
+            await client.send_message(ch, s+" removed!")
+    except:
+        pass
+    
+    s = s.lower()
     
     for p in config.packs:
         if p in s and p in config.C[ch]["packs"]:
@@ -574,11 +610,11 @@ async def on_message(message):
                     output += ' ' + usr.mention
                 await client.send_message(ch, output)
             if len(msg) > 6 and msg[:6] == c+"!add " and config.C[ch]["lang"] == "English":
-                await addPack(ch, msg[6:])
+                await addPack(ch, message.content[6:])
             if len(msg) > 9 and msg[:9] == c+"!remove " and config.C[ch]["lang"] == "English":
-                await removePack(ch, msg[9:])
+                await removePack(ch, message.content[9:])
             elif len(msg) > 5 and msg[:5] == c+"!rm " and config.C[ch]["lang"] == "English":
-                await removePack(ch, msg[5:])
+                await removePack(ch, message.content[5:])
     else:
         if msg == c+"!help":
             await client.send_message(ch, (
