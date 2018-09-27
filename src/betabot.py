@@ -450,7 +450,7 @@ async def on_message(message):
     # changelog
     if msg == c+"!whatsnew" or msg == c+"!update" or msg == c+"!updates":
         s = config.changelog
-        await client.send_message(ch, s[:s.index("**8/18")])
+        await client.send_message(ch, s[:s.index("**9/11")])
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
@@ -496,14 +496,17 @@ async def on_message(message):
                 config.C[ch]["players"].append(au)
                 s = await get_start_msg(ch)
                 config.C[ch]["msg"] = await client.send_message(ch, s)
-                output = str(len(config.C[ch]["players"])) + "/20 Players:"
-                for usr in config.C[ch]["players"]:
-                    output += ' ' + usr.mention
+                output = str(len(config.C[ch]["players"])) + "/20 Players: "
+                output += ", ".join(usr.display_name for usr in config.C[ch]["players"])
                 await client.send_message(ch, output)
             elif 2 <= len(config.C[ch]["players"]) <= 20:
                 config.C[ch]["playerMenu"] = False
                 config.C[ch]["nPlayers"] = len(config.C[ch]["players"])
                 await start_(ch)
+                
+                await client.send_message(ch,
+                    "Game is starting!\n" + ' '.join(usr.mention for usr in config.C[ch]["players"]))
+                
                 config.C[ch]["msg"] = None
                 await displayMid(ch)
         elif len(msg) > 8 and msg[:8] == c+"!setwin":
@@ -635,9 +638,8 @@ async def on_message(message):
                 if au in config.C[ch]["players"]:
                     config.C[ch]["players"].remove(au)
             if curr != len(config.C[ch]["players"]):
-                output = str(len(config.C[ch]["players"])) + "/10 Players:"
-                for usr in config.C[ch]["players"]:
-                    output += ' ' + usr.mention
+                output = str(len(config.C[ch]["players"])) + "/20 Players: "
+                output += ", ".join(usr.display_name for usr in config.C[ch]["players"])
                 await client.send_message(ch, output)
             if len(msg) > 6 and msg[:6] == c+"!add " and config.C[ch]["lang"] == "English":
                 await addPack(ch, message.content[6:])

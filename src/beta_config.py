@@ -1,8 +1,10 @@
 import random
 from cardcast import api
 
-changelog = """**?/?/18 Update:**
+changelog = """**9/27/18 Update:**
 - `c!contents` can now access CardCast packs
+- Bot will no longer ping every player in the game when someone joins, but will ping everyone when the game starts
+- Base pack is no longer automatically added after starting a new game
 - Private messages now show server name
 
 **9/24/18 Update:**
@@ -9789,10 +9791,13 @@ async def reset(ch):
     
     C[ch]["nPlayers"] = 0
     
-    C[ch]["black"] = list(black) if C[ch]["lang"] == "English" else list(eval("black_"+languages[C[ch]["lang"]]))
-    C[ch]["white"] = list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
+    C[ch]["black"] = []
+    C[ch]["white"] = []
     for p in C[ch]["packs"]:
-        if p != "base":
+        if p == "base":
+            C[ch]["black"] += list(black) if C[ch]["lang"] == "English" else list(eval("black_"+languages[C[ch]["lang"]]))
+            C[ch]["white"] += list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
+        else:
             try:
                 C[ch]["black"] += list(eval("black_"+p))
                 C[ch]["white"] += list(eval("white_"+p))
