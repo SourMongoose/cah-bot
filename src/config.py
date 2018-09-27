@@ -1,64 +1,88 @@
 import random
 from cardcast import api
 
-changelog = (
-    "**9/24/18 Update:**\n"
-    "- Added CardCast support\n\n"
-    "**9/21/18 Update:**\n"
-    "- Fixed bug where `c!kick` would not function properly if players joined mid-game\n"
-    "- Server admins can now reset a game even when they are not playing\n\n"
-    "**9/17/18 Update:**\n"
-    "- Blank cards should now be completely functional\n\n"
-    "**9/11/18 Update:**\n"
-    "- `c!commands` now directly shows the list of commands\n\n"
-    "**9/3/18 Update:**\n"
-    "- Packs/timer/blanks/etc. will no longer be reset after each game\n"
-    "- List of current packs is now shown\n"
-    "- Max players increased to 20 (careful, a game with 10+ players could get cramped)\n"
-    "- A few other minor text fixes\n\n"
-    "**8/29/18 Update:**\n"
-    "- Added idle timer; edit with `c!timer`\n"
-    "- Adding packs with `c!add all` is less cluttered (and a LOT faster!)\n\n"
-    "**8/22/18 Update:**\n"
-    "- Added dividing lines for scoreboard\n\n"
-    "**8/18/18 Update:**\n"
-    "- Scoreboard and other messages now use display name instead of nickname\n"
-    "- Scoreboard now shows which players have already played their card(s)\n\n"
-    "**8/17/18 Update:**\n"
-    "- Added German as a language option\n\n"
-    "**8/16/18 Update:**\n"
-    "- Added option for custom prefix with `c!prefix`\n\n"
-    "**8/15/18 Update:**\n"
-    "- Added `c!support` to bring up a link to the support server\n\n"
-    "**8/13/18 Update:**\n"
-    "- Added `c!kick` for those pesky AFKs!\n"
-    "- Fixed bug where cards played were not being shuffled\n\n"
-    "**8/10/18 Update:**\n"
-    "- Changed format of hand sent\n\n"
-    "**8/6/18 Update:**\n"
-    "- Added blank cards! Use `c!setblank` to add blank cards to your game\n"
-    "- Commas and spaces are now allowed when playing multiple cards\n\n"
-    "**8/3/18 Update:**\n"
-    "- Added error message when bot is unable to send a player their hand\n\n"
-    "**7/27/18 Update:**\n"
-    "- Added a whole bunch of third party config.packs!\n"
-    "- Made adding config.packs a bit faster\n"
-    "- Updated `c!config.packs` with number of cards in each pack\n"
-    "- Separated official CAH config.packs from third party config.packs\n\n"
-    "**7/18/18 Update:**\n"
-    "- Added Holiday config.packs, PAX config.packs, and more\n"
-    "- Added `c!config.packs` and `c!contents` commands\n"
-    "- Fixed bug where language would randomly switch to Portuguese\n\n"
-    "**7/16/18 Update:**\n"
-    "- Added Spanish as a language option\n"
-    "- Added the `c!commands` command\n\n"
-    "**7/14/18 Update:**\n"
-    "- Added even more config.packs!\n"
-    "- Fixed bug where game would freeze if czar left\n\n"
-    "**7/11/18 Update:**\n"
-    "- Added the `c!whatsnew` command\n"
-    "- Added a bunch more config.packs"
-)
+changelog = """**9/27/18 Update:**
+- `c!contents` can now access CardCast packs
+- Bot will no longer ping every player in the game when someone joins, but will ping everyone when the game starts
+- Base pack is no longer automatically added after starting a new game
+- Private messages now show server name
+
+**9/24/18 Update:**
+- Added CardCast support
+
+**9/21/18 Update:**
+- Fixed bug where `c!kick` would not function properly if players joined mid-game
+- Server admins can now reset a game even when they are not playing
+
+**9/17/18 Update:**
+- Blank cards should now be completely functional
+
+**9/11/18 Update:**
+- `c!commands` now directly shows the list of commands
+
+**9/3/18 Update:**
+- Packs/timer/blanks/etc. will no longer be reset after each game
+- List of current packs is now shown
+- Max players increased to 20 (careful, a game with 10+ players could get cramped)
+- A few other minor text fixes
+
+**8/29/18 Update:**
+- Added idle timer; edit with `c!timer`
+- Adding packs with `c!add all` is less cluttered (and a LOT faster!)
+
+**8/22/18 Update:**
+- Added dividing lines for scoreboard
+
+**8/18/18 Update:
+- Scoreboard and other messages now use display name instead of nickname
+- Scoreboard now shows which players have already played their card(s)
+
+**8/17/18 Update:**
+- Added German as a language option
+
+**8/16/18 Update:**
+- Added option for custom prefix with `c!prefix`
+
+**8/15/18 Update:**
+- Added `c!support` to bring up a link to the support server
+
+**8/13/18 Update:**
+- Added `c!kick` for those pesky AFKs!
+- Fixed bug where cards played were not being shuffled
+
+**8/10/18 Update:**
+- Changed format of hand sent
+
+**8/6/18 Update:**
+- Added blank cards! Use `c!setblank` to add blank cards to your game
+- Commas and spaces are now allowed when playing multiple cards
+
+**8/3/18 Update:**
+- Added error message when bot is unable to send a player their hand
+
+**7/27/18 Update:**
+- Added a whole bunch of third party config.packs!
+- Made adding config.packs a bit faster
+- Updated `c!config.packs` with number of cards in each pack
+- Separated official CAH config.packs from third party config.packs
+
+**7/18/18 Update:**
+- Added Holiday config.packs, PAX config.packs, and more
+- Added `c!config.packs` and `c!contents` commands
+- Fixed bug where language would randomly switch to Portuguese
+
+**7/16/18 Update:**
+- Added Spanish as a language option
+- Added the `c!commands` command
+
+**7/14/18 Update:**
+- Added even more config.packs!
+- Fixed bug where game would freeze if czar left
+
+**7/11/18 Update:**
+- Added the `c!whatsnew` command
+- Added a bunch more config.packs
+"""
 
 commands = """**List of available commands:**
 
@@ -9767,10 +9791,13 @@ async def reset(ch):
     
     C[ch]["nPlayers"] = 0
     
-    C[ch]["black"] = list(black) if C[ch]["lang"] == "English" else list(eval("black_"+languages[C[ch]["lang"]]))
-    C[ch]["white"] = list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
+    C[ch]["black"] = []
+    C[ch]["white"] = []
     for p in C[ch]["packs"]:
-        if p != "base":
+        if p == "base":
+            C[ch]["black"] += list(black) if C[ch]["lang"] == "English" else list(eval("black_"+languages[C[ch]["lang"]]))
+            C[ch]["white"] += list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
+        else:
             try:
                 C[ch]["black"] += list(eval("black_"+p))
                 C[ch]["white"] += list(eval("white_"+p))

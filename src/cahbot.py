@@ -184,7 +184,7 @@ async def removePack(ch,s):
     await edit_start_msg(ch)
 
 async def play(ch,p,s):
-    s = s.strip().replace(' ','').replace(',','')
+    s = s.strip().replace(' ','').replace(',','').replace('<','').replace('>','')
     
     player = None
     # check that player is in current game
@@ -450,7 +450,7 @@ async def on_message(message):
     # changelog
     if msg == c+"!whatsnew" or msg == c+"!update" or msg == c+"!updates":
         s = config.changelog
-        await client.send_message(ch, s[:s.index("**8/18")])
+        await client.send_message(ch, s[:s.index("**9/11")])
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
@@ -496,14 +496,17 @@ async def on_message(message):
                 config.C[ch]["players"].append(au)
                 s = await get_start_msg(ch)
                 config.C[ch]["msg"] = await client.send_message(ch, s)
-                output = str(len(config.C[ch]["players"])) + "/20 Players:"
-                for usr in config.C[ch]["players"]:
-                    output += ' ' + usr.mention
+                output = str(len(config.C[ch]["players"])) + "/20 Players: "
+                output += ", ".join(usr.display_name for usr in config.C[ch]["players"])
                 await client.send_message(ch, output)
             elif 2 <= len(config.C[ch]["players"]) <= 20:
                 config.C[ch]["playerMenu"] = False
                 config.C[ch]["nPlayers"] = len(config.C[ch]["players"])
                 await start_(ch)
+                
+                await client.send_message(ch,
+                    "Game is starting!\n" + ' '.join(usr.mention for usr in config.C[ch]["players"]))
+                
                 config.C[ch]["msg"] = None
                 await displayMid(ch)
         elif len(msg) > 8 and msg[:8] == c+"!setwin":
@@ -570,7 +573,37 @@ async def on_message(message):
                 "Use `"+c+"!contents <code>` to see what cards are in a specific pack.")
             await client.send_message(ch, output)
         elif len(msg) > 10 and msg[:10] == c+"!contents":
-            pk = msg[10:].strip()
+            pk = message.content[10:].strip()
+            
+            # check for CardCast packs
+            try:
+                print(pk)
+                b, w = api.get_deck_blacks_json(pk), api.get_deck_whites_json(pk)
+                deck_b = ['_'.join(c["text"]) for c in b]
+                deck_w = [''.join(c["text"]) for c in w]
+                print("got it!")
+                
+                output = "**Cards in " + api.get_deck_info_json(pk)["name"] + "** (code: " + pk + ")**:**\n\n"
+                output += "**Black cards:**"+" ("+str(len(deck_b))+")\n"
+                for c in deck_b:
+                    output += "- "+c+"\n"
+                    if len(output) > 1500:
+                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        output = ""
+                output += "\n**White cards:**"+" ("+str(len(deck_w))+")\n"
+                for c in deck_w:
+                    output += "- "+c+"\n"
+                    if len(output) > 1500:
+                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        output = ""
+                await client.send_message(ch, output.replace('_',"\_\_\_"))
+                
+                return
+            except:
+                pass
+            
+            # check built-in packs
+            pk = pk.lower()
             if pk in config.packs or pk in config.thirdparty:
                 output = ""
                 if pk in config.packs:
@@ -605,9 +638,8 @@ async def on_message(message):
                 if au in config.C[ch]["players"]:
                     config.C[ch]["players"].remove(au)
             if curr != len(config.C[ch]["players"]):
-                output = str(len(config.C[ch]["players"])) + "/10 Players:"
-                for usr in config.C[ch]["players"]:
-                    output += ' ' + usr.mention
+                output = str(len(config.C[ch]["players"])) + "/20 Players: "
+                output += ", ".join(usr.display_name for usr in config.C[ch]["players"])
                 await client.send_message(ch, output)
             if len(msg) > 6 and msg[:6] == c+"!add " and config.C[ch]["lang"] == "English":
                 await addPack(ch, message.content[6:])
