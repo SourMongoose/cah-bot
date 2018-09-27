@@ -560,11 +560,9 @@ async def on_message(message):
             
             # check for CardCast packs
             try:
-                print(pk)
                 b, w = api.get_deck_blacks_json(pk), api.get_deck_whites_json(pk)
                 deck_b = ['_'.join(c["text"]) for c in b]
                 deck_w = [''.join(c["text"]) for c in w]
-                print("got it!")
                 
                 output = "**Cards in " + api.get_deck_info_json(pk)["name"] + "** (code: " + pk + ")**:**\n\n"
                 output += "**Black cards:**"+" ("+str(len(deck_b))+")\n"
