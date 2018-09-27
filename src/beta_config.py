@@ -2,6 +2,8 @@ import random
 from cardcast import api
 
 changelog = (
+    "**?/?/18 Update:**\n"
+    "- `c!contents` can now access CardCast packs\n\n"
     "**9/24/18 Update:**\n"
     "- Added CardCast support\n\n"
     "**9/21/18 Update:**\n"

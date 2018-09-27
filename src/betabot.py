@@ -184,7 +184,7 @@ async def removePack(ch,s):
     await edit_start_msg(ch)
 
 async def play(ch,p,s):
-    s = s.strip().replace(' ','').replace(',','')
+    s = s.strip().replace(' ','').replace(',','').replace('<','').replace('>','')
     
     player = None
     # check that player is in current game
@@ -570,7 +570,37 @@ async def on_message(message):
                 "Use `"+c+"!contents <code>` to see what cards are in a specific pack.")
             await client.send_message(ch, output)
         elif len(msg) > 10 and msg[:10] == c+"!contents":
-            pk = msg[10:].strip()
+            pk = message.content[10:].strip()
+            
+            # check for CardCast packs
+            try:
+                print(pk)
+                b, w = api.get_deck_blacks_json(pk), api.get_deck_whites_json(pk)
+                deck_b = ['_'.join(c["text"]) for c in b]
+                deck_w = [''.join(c["text"]) for c in w]
+                print("got it!")
+                
+                output = "**Cards in " + api.get_deck_info_json(pk)["name"] + "** (code: " + pk + ")**:**\n\n"
+                output += "**Black cards:**"+" ("+str(len(deck_b))+")\n"
+                for c in deck_b:
+                    output += "- "+c+"\n"
+                    if len(output) > 1500:
+                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        output = ""
+                output += "\n**White cards:**"+" ("+str(len(deck_w))+")\n"
+                for c in deck_w:
+                    output += "- "+c+"\n"
+                    if len(output) > 1500:
+                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        output = ""
+                await client.send_message(ch, output.replace('_',"\_\_\_"))
+                
+                return
+            except:
+                pass
+            
+            # check built-in packs
+            pk = pk.lower()
             if pk in config.packs or pk in config.thirdparty:
                 output = ""
                 if pk in config.packs:
