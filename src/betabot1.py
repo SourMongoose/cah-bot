@@ -272,6 +272,7 @@ async def displayMid(ch):
     for i in range(config.C[ch]["nPlayers"]):
         msg += config.C[ch]["players"][i].display_name + " - " + str(config.C[ch]["score"][i])
         if config.C[ch]["played"][i] and not config.done(ch): msg += " **Played!**"
+        elif config.C[ch]["pov"] == i: msg += " **Czar**"
         msg += '\n'
     
     if config.C[ch]["win"] not in config.C[ch]["score"]:
@@ -808,7 +809,3 @@ client.loop.create_task(blank_check())
 client.run(tokens.beta_id)
 # live token
 #client.run(tokens.live_id)
-
-def my_handler(loop, context):
-    print("Unretreived exception")
-client.loop.set_exception_handler(my_handler)

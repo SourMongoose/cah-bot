@@ -268,10 +268,11 @@ async def displayMid(ch):
     # don't display if not enough players
     if config.C[ch]["nPlayers"] < 2: return
     
-    msg = "─"*15 + "\n"
+    msg = "─"*20 + "\n"
     for i in range(config.C[ch]["nPlayers"]):
         msg += config.C[ch]["players"][i].display_name + " - " + str(config.C[ch]["score"][i])
         if config.C[ch]["played"][i] and not config.done(ch): msg += " **Played!**"
+        elif config.C[ch]["pov"] == i: msg += " **Czar**"
         msg += '\n'
     
     if config.C[ch]["win"] not in config.C[ch]["score"]:
@@ -285,7 +286,7 @@ async def displayMid(ch):
             for card in config.C[ch]["mid"][m][0]:
                 msg += card + '\n'
     
-    msg += "─"*15
+    msg += "─"*20
     
     try:
         #em = discord.Embed(description=msg, colour=0xBBBBBB)
@@ -796,7 +797,3 @@ client.loop.create_task(timer_check())
 client.run(tokens.beta_id)
 # live token
 #client.run(tokens.live_id)
-
-def my_handler(loop, context):
-    print("Unretreived exception")
-client.loop.set_exception_handler(my_handler)

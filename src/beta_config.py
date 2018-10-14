@@ -1,7 +1,10 @@
 import random
 from cardcast import api
 
-changelog = """**9/27/18 Update:**
+changelog = """**10/13/18 Update:**
+- Scoreboard will now show 'Czar' next to current czar
+
+**9/27/18 Update:**
 - `c!contents` can now access CardCast packs
 - Bot will no longer ping every player in the game when someone joins, but will ping everyone when the game starts
 - Base pack is no longer automatically added after starting a new game
