@@ -268,7 +268,7 @@ async def displayMid(ch):
     # don't display if not enough players
     if config.C[ch]["nPlayers"] < 2: return
     
-    msg = "─"*15 + "\n"
+    msg = "─"*20 + "\n"
     for i in range(config.C[ch]["nPlayers"]):
         msg += config.C[ch]["players"][i].display_name + " - " + str(config.C[ch]["score"][i])
         if config.C[ch]["played"][i] and not config.done(ch): msg += " **Played!**"
@@ -286,7 +286,7 @@ async def displayMid(ch):
             for card in config.C[ch]["mid"][m][0]:
                 msg += card + '\n'
     
-    msg += "─"*15
+    msg += "─"*20
     
     try:
         #em = discord.Embed(description=msg, colour=0xBBBBBB)
@@ -348,7 +348,7 @@ async def removePlayer(ch, p, kick=False):
         config.C[ch]["played"] = config.C[ch]["played"][:i]+config.C[ch]["played"][i+1:]
         config.C[ch]["hands"] = config.C[ch]["hands"][:i]+config.C[ch]["hands"][i+1:]
         config.C[ch]["score"] = config.C[ch]["score"][:i]+config.C[ch]["score"][i+1:]
-        config.C[ch]["kick"] = config.C[ch]["kick"][:i]+config.C[ch]["score"][i+1:]
+        config.C[ch]["kick"] = config.C[ch]["kick"][:i]+config.C[ch]["kick"][i+1:]
         
         if i < config.C[ch]["pov"]:
             config.C[ch]["pov"] -= 1
@@ -734,7 +734,8 @@ async def timer_check():
     await client.wait_until_ready()
     
     while not client.is_closed:
-        for ch in config.C:
+        channels = [ch for ch in config.C]
+        for ch in channels:
             if config.C[ch]["started"]:
                 if config.C[ch]["timer"] != 0 and time.time() - config.C[ch]["time"] >= config.C[ch]["timer"]:
                     if config.done(ch):
