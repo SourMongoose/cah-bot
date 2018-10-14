@@ -462,6 +462,14 @@ async def on_message(message):
     if msg == c+"!support" or msg == c+"!server" or msg == c+"!supp":
         await client.send_message(ch, "https://discord.gg/qGjRSYQ")
     
+    # invite link
+    if msg == c+"!invite":
+        await client.send_message(ch, "Use this link to invite the bot to your own server:\n<https://discordapp.com/api/oauth2/authorize?client_id=429024440060215296&permissions=134294592&scope=bot>")
+    
+    # vote link
+    if msg == c+"!vote":
+        await client.send_message(ch, "Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>")
+    
     # custom prefix setting
     if len(msg) == 10 and msg[:9] == c+"!prefix " and 'a' <= msg[9] <= 'z':
         await client.send_message(ch, "Command prefix set to `" + msg[9] + "`!")
@@ -751,7 +759,7 @@ async def timer_check():
     await client.wait_until_ready()
     
     while not client.is_closed:
-        channels = [ch for ch in config.C]
+        channels = config.C.keys()
         for ch in channels:
             if config.C[ch]["started"]:
                 if config.C[ch]["timer"] != 0 and time.time() - config.C[ch]["time"] >= config.C[ch]["timer"]:

@@ -3,6 +3,7 @@ from cardcast import api
 
 changelog = """**10/13/18 Update:**
 - Scoreboard will now show 'Czar' next to current czar
+- Added `c!invite` and `c!vote`
 
 **9/27/18 Update:**
 - `c!contents` can now access CardCast packs
@@ -94,6 +95,8 @@ Global commands:
 • c!whatsnew - Show the changelog
 • c!commands - Show a list of all commands
 • c!support - Brings up a link to the support server
+• c!invite - Brings up the bot's invite link
+• c!vote - Brings up a link to the bot's vote page on discordbots.org
 • c!prefix <letter> - Change command prefix to given letter
 
 Pre-game commands:
