@@ -268,10 +268,11 @@ async def displayMid(ch):
     # don't display if not enough players
     if config.C[ch]["nPlayers"] < 2: return
     
-    msg = "─"*15 + "\n"
+    msg = "─"*20 + "\n"
     for i in range(config.C[ch]["nPlayers"]):
         msg += config.C[ch]["players"][i].display_name + " - " + str(config.C[ch]["score"][i])
         if config.C[ch]["played"][i] and not config.done(ch): msg += " **Played!**"
+        elif config.C[ch]["pov"] == i: msg += " **Czar**"
         msg += '\n'
     
     if config.C[ch]["win"] not in config.C[ch]["score"]:
@@ -285,7 +286,7 @@ async def displayMid(ch):
             for card in config.C[ch]["mid"][m][0]:
                 msg += card + '\n'
     
-    msg += "─"*15
+    msg += "─"*20
     
     try:
         #em = discord.Embed(description=msg, colour=0xBBBBBB)
@@ -347,7 +348,7 @@ async def removePlayer(ch, p, kick=False):
         config.C[ch]["played"] = config.C[ch]["played"][:i]+config.C[ch]["played"][i+1:]
         config.C[ch]["hands"] = config.C[ch]["hands"][:i]+config.C[ch]["hands"][i+1:]
         config.C[ch]["score"] = config.C[ch]["score"][:i]+config.C[ch]["score"][i+1:]
-        config.C[ch]["kick"] = config.C[ch]["kick"][:i]+config.C[ch]["score"][i+1:]
+        config.C[ch]["kick"] = config.C[ch]["kick"][:i]+config.C[ch]["kick"][i+1:]
         
         if i < config.C[ch]["pov"]:
             config.C[ch]["pov"] -= 1
@@ -443,6 +444,14 @@ async def on_message(message):
     # support server
     if msg == c+"!support" or msg == c+"!server" or msg == c+"!supp":
         await client.send_message(ch, "https://discord.gg/qGjRSYQ")
+    
+    # invite link
+    if msg == c+"!invite":
+        await client.send_message(ch, "Use this link to invite the bot to your own server:\n<https://discordapp.com/api/oauth2/authorize?client_id=429024440060215296&permissions=134294592&scope=bot>")
+    
+    # vote link
+    if msg == c+"!vote":
+        await client.send_message(ch, "Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>")
     
     # custom prefix setting
     if len(msg) == 10 and msg[:9] == c+"!prefix " and 'a' <= msg[9] <= 'z':
@@ -733,7 +742,8 @@ async def timer_check():
     await client.wait_until_ready()
     
     while not client.is_closed:
-        for ch in config.C:
+        channels = config.C.keys()
+        for ch in channels:
             if config.C[ch]["started"]:
                 if config.C[ch]["timer"] != 0 and time.time() - config.C[ch]["time"] >= config.C[ch]["timer"]:
                     if config.done(ch):
@@ -808,7 +818,3 @@ client.loop.create_task(blank_check())
 #client.run(tokens.beta_id)
 # live token
 client.run(tokens.live_id)
-
-def my_handler(loop, context):
-    print("Unretreived exception")
-client.loop.set_exception_handler(my_handler)
