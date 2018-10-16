@@ -214,6 +214,9 @@ async def play(ch,p,s):
                 config.C[ch]["hands"][player].remove(c)
             config.C[ch]["played"][player] = True
             await client.send_message(ch, p.display_name + " has played!")
+        else:
+            await client.send_message(p, "This prompt requires " + str(config.nCards(ch)) + " white card(s).")
+            return
         
         # update kicks
         for k in range(len(config.C[ch]["kick"])):

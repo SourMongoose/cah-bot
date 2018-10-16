@@ -3,6 +3,7 @@ from cardcast import api
 
 changelog = """**?/?/18 Update:**
 - Private messages will now show the current black card
+- Added error message for when wrong number of cards are played
 
 **10/13/18 Update:**
 - Scoreboard will now show 'Czar' next to current czar
