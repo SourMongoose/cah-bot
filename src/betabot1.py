@@ -44,9 +44,8 @@ async def start_(ch):
     for _ in range(config.C[ch]["blanks"]): config.C[ch]["white"].append("")
     
     await config.shuffle(ch)
-    await deal(ch)
-    
     config.C[ch]["curr"] = await config.nextBlack(ch)
+    await deal(ch)
     
     config.C[ch]["pov"] = 0
 
@@ -246,6 +245,9 @@ async def sendHand(ch,i):
             s = "<blank card>"
             hasBlank = True
         msg += "**" + "ABCDEFGHIJKL"[card] + ")** " + s + '\n'
+    
+    msg += "\nBlack card:\n" + config.C[ch]["curr"]
+    msg = msg.replace('_', '\_'*5)
     
     em = discord.Embed(title=t, description=msg, colour=0xBBBBBB)
     
@@ -742,7 +744,7 @@ async def timer_check():
     await client.wait_until_ready()
     
     while not client.is_closed:
-        channels = config.C.keys()
+        channels = list(config.C.keys())
         for ch in channels:
             if config.C[ch]["started"]:
                 if config.C[ch]["timer"] != 0 and time.time() - config.C[ch]["time"] >= config.C[ch]["timer"]:

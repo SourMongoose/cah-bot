@@ -1,7 +1,10 @@
 import random
 from cardcast import api
 
-changelog = """**10/13/18 Update:**
+changelog = """**?/?/18 Update:**
+- Private messages will now show the current black card
+
+**10/13/18 Update:**
 - Scoreboard will now show 'Czar' next to current czar
 - Added `c!invite` and `c!vote`
 
