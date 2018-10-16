@@ -7,6 +7,7 @@ import sqlite3
 from cardcast import api
 
 import beta_config as config
+import beta_info as info
 import tokens
 
 conn = sqlite3.connect("messages.db")
@@ -455,12 +456,12 @@ async def on_message(message):
     
     # changelog
     if msg == c+"!whatsnew" or msg == c+"!update" or msg == c+"!updates":
-        s = config.changelog
+        s = info.changelog
         await client.send_message(ch, s[:s.index("**9/11")])
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
-        await client.send_message(ch, config.commands)
+        await client.send_message(ch, info.commands)
         #await client.send_message(ch, "You can find a list of available commands here:\nhttps://discordbots.org/bot/429024440060215296")
     
     # support server
