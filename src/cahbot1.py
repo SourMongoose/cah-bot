@@ -7,6 +7,7 @@ import sqlite3
 from cardcast import api
 
 import config
+import info
 import tokens
 
 conn = sqlite3.connect("messages.db")
@@ -44,9 +45,8 @@ async def start_(ch):
     for _ in range(config.C[ch]["blanks"]): config.C[ch]["white"].append("")
     
     await config.shuffle(ch)
-    await deal(ch)
-    
     config.C[ch]["curr"] = await config.nextBlack(ch)
+    await deal(ch)
     
     config.C[ch]["pov"] = 0
 
@@ -215,6 +215,9 @@ async def play(ch,p,s):
                 config.C[ch]["hands"][player].remove(c)
             config.C[ch]["played"][player] = True
             await client.send_message(ch, p.display_name + " has played!")
+        else:
+            await client.send_message(p, "This prompt requires " + str(config.nCards(ch)) + " white card(s).")
+            return
         
         # update kicks
         for k in range(len(config.C[ch]["kick"])):
@@ -246,6 +249,9 @@ async def sendHand(ch,i):
             s = "<blank card>"
             hasBlank = True
         msg += "**" + "ABCDEFGHIJKL"[card] + ")** " + s + '\n'
+    
+    msg += "\nBlack card:\n" + config.C[ch]["curr"]
+    msg = msg.replace('_', '\_'*5)
     
     em = discord.Embed(title=t, description=msg, colour=0xBBBBBB)
     
@@ -380,14 +386,14 @@ async def removePlayer(ch, p, kick=False):
 async def get_start_msg(ch):
     c = config.pre[ch.id] if ch.id in config.pre else 'c'
     
-    s = ("Use `"+c+"!join` to join (and `"+c+"!leave` if you have to go)!\n"
-        "Use `"+c+"!add <pack>` to add an expansion pack (`"+c+"!packs` to show all available packs).\n"
+    s = ("Use `{0}!join` to join (and `{0}!leave` if you have to go)!\n"
+        "Use `{0}!add <pack>` to add an expansion pack (`{0}!packs` to show all available packs).\n"
         "Current packs: "+", ".join(p for p in config.C[ch]["packs"])+"\n"
-        "Use `"+c+"!setwin <#>` to change the number of points to win (current: "+str(config.C[ch]["win"])+")\n"
-        "Use `"+c+"!timer <# sec>` to change the duration of the idle timer (current: "+str(config.C[ch]["timer"])+"), or use `c!timer 0` to disable it.\n"
-        "Use `"+c+"!setblank <#>` to change the number of blank cards (max 30, current: "+str(config.C[ch]["blanks"])+")\n"
-        "Use `"+c+"!language <lang>` to change the language (current: "+str(config.C[ch]["lang"])+")\n"
-        "Once everyone has joined, type `"+c+"!start` again to begin.")
+        "Use `{0}!setwin <#>` to change the number of points to win (current: "+str(config.C[ch]["win"])+")\n"
+        "Use `{0}!timer <# sec>` to change the duration of the idle timer (current: "+str(config.C[ch]["timer"])+"), or use `c!timer 0` to disable it.\n"
+        "Use `{0}!setblank <#>` to change the number of blank cards (max 30, current: "+str(config.C[ch]["blanks"])+")\n"
+        "Use `{0}!language <lang>` to change the language (current: "+str(config.C[ch]["lang"])+")\n"
+        "Once everyone has joined, type `{0}!start` again to begin.").format(c)
     
     return s
 
@@ -433,12 +439,12 @@ async def on_message(message):
     
     # changelog
     if msg == c+"!whatsnew" or msg == c+"!update" or msg == c+"!updates":
-        s = config.changelog
+        s = info.changelog
         await client.send_message(ch, s[:s.index("**9/11")])
     
     # commands list
     if msg == c+"!commands" or msg == c+"!command":
-        await client.send_message(ch, config.commands)
+        await client.send_message(ch, info.commands)
         #await client.send_message(ch, "You can find a list of available commands here:\nhttps://discordbots.org/bot/429024440060215296")
     
     # support server
@@ -473,8 +479,8 @@ async def on_message(message):
         
         if msg == c+"!help":
             await client.send_message(ch, (
-                "Use `"+c+"!start` to start a game of Cards Against Humanity, or `"+c+"!cancel` to cancel an existing one.\n"
-                "Use `"+c+"!commands` to bring up a list of available commands."))
+                "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!cancel` to cancel an existing one.\n"
+                "Use `{0}!commands` to bring up a list of available commands.").format(c))
         elif msg == c+"!language english":
             if config.C[ch]["lang"] != "English":
                 config.C[ch]["lang"] = "English"
@@ -560,9 +566,9 @@ async def on_message(message):
             output += "\nThird party packs:\n"
             for p in config.thirdparty:
                 output += "**"+p+"** - "+config.thirdparty[p]+" ("+str(len(eval("config.black_"+p)))+"/"+str(len(eval("config.white_"+p)))+")\n"
-            output += ("\nUse `"+c+"!add <code>` to add a pack, or use `"+c+"!add all` to add all available packs.\n"
-                "(Note: this will only add official CAH packs; use `"+c+"!add thirdparty` to add all third party packs.)\n"
-                "Use `"+c+"!contents <code>` to see what cards are in a specific pack.")
+            output += ("\nUse `{0}!add <code>` to add a pack, or use `{0}!add all` to add all available packs.\n"
+                "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"
+                "Use `{0}!contents <code>` to see what cards are in a specific pack.").format(c)
             await client.send_message(ch, output)
         elif len(msg) > 10 and msg[:10] == c+"!contents":
             pk = message.content[10:].strip()
@@ -578,15 +584,15 @@ async def on_message(message):
                 for c in deck_b:
                     output += "- "+c+"\n"
                     if len(output) > 1500:
-                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        await client.send_message(ch, output.replace('_','\_'*3))
                         output = ""
                 output += "\n**White cards:**"+" ("+str(len(deck_w))+")\n"
                 for c in deck_w:
                     output += "- "+c+"\n"
                     if len(output) > 1500:
-                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        await client.send_message(ch, output.replace('_','\_'*3))
                         output = ""
-                await client.send_message(ch, output.replace('_',"\_\_\_"))
+                await client.send_message(ch, output.replace('_','\_'*3))
                 
                 return
             except:
@@ -605,15 +611,15 @@ async def on_message(message):
                 for c in eval("config.black_"+pk):
                     output += "- "+c+"\n"
                     if len(output) > 1500:
-                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        await client.send_message(ch, output.replace('_','\_'*3))
                         output = ""
                 output += "\n**White cards:**"+" ("+str(len(eval("config.white_"+pk)))+")\n"
                 for c in eval("config.white_"+pk):
                     output += "- "+c+"\n"
                     if len(output) > 1500:
-                        await client.send_message(ch, output.replace('_',"\_\_\_"))
+                        await client.send_message(ch, output.replace('_','\_'*3))
                         output = ""
-                await client.send_message(ch, output.replace('_',"\_\_\_"))
+                await client.send_message(ch, output.replace('_','\_'*3))
         elif msg == c+"!cancel":
             config.C[ch]["playerMenu"] = False
             config.C[ch]["players"] = []
@@ -640,13 +646,13 @@ async def on_message(message):
     else:
         if msg == c+"!help":
             await client.send_message(ch, (
-                "To play white cards, use `"+c+"!play` followed by the letters next to the cards you want to play. "
-                "For example, `"+c+"!play b` would play card B, and `"+c+"!play df` would play cards D and F.\n"
+                "To play white cards, use `{0}!play` followed by the letters next to the cards you want to play. "
+                "For example, `{0}!play b` would play card B, and `{0}!play df` would play cards D and F.\n"
                 "If you're the czar, react with the letter of your choice once everyone has played their cards.\n"
-                "To reset an ongoing game, use `"+c+"!reset`.\n"
-                "To leave an ongoing game, use `"+c+"!leave` or `"+c+"!quit`.\n"
-                "To join an ongoing game, use `"+c+"!join`.\n"
-                "To kick an AFK player, use `"+c+"!kick <player>`."))
+                "To reset an ongoing game, use `{0}!reset`.\n"
+                "To leave an ongoing game, use `{0}!leave` or `{0}!quit`.\n"
+                "To join an ongoing game, use `{0}!join`.\n"
+                "To kick an AFK player, use `{0}!kick <player>`.").format(c))
             
         # player commands
         if au in config.C[ch]["players"]:
@@ -742,7 +748,7 @@ async def timer_check():
     await client.wait_until_ready()
     
     while not client.is_closed:
-        channels = config.C.keys()
+        channels = list(config.C.keys())
         for ch in channels:
             if config.C[ch]["started"]:
                 if config.C[ch]["timer"] != 0 and time.time() - config.C[ch]["time"] >= config.C[ch]["timer"]:
