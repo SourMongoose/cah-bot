@@ -2,7 +2,7 @@ import discord
 
 from shard import Shard
 
-client = discord.Client(shard_id=1, shard_count=4)
+client = discord.Client(shard_id=2, shard_count=4)
 
 @client.event
 async def on_ready():
@@ -16,5 +16,5 @@ async def on_message(message):
 async def on_reaction_add(reaction, user):
     await s.on_reaction_add(reaction, user)
 
-s = Shard(1, client)
+s = Shard(2, client)
 s.run()

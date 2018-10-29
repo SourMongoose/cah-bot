@@ -6,8 +6,8 @@ import sqlite3
 
 from cardcast import api
 
-import beta_config as config
-import beta_info as info
+import config
+import info
 import tokens
 
 class Shard:
@@ -491,6 +491,10 @@ class Shard:
                 if config.C[x]['started']:
                     nC += 1
             await self.client.send_message(ch, str(nC))
+            
+        # shard
+        if msg == c+'!shard':
+            await self.client.send_message(ch, str(self.shard))
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
@@ -882,6 +886,6 @@ class Shard:
         if self.shard != 0: self.client.loop.create_task(self.blank_check())
         
         # beta token
-        self.client.run(tokens.beta_id)
+        #self.client.run(tokens.beta_id)
         # live token
-        #self.client.run(tokens.live_id)
+        self.client.run(tokens.live_id)
