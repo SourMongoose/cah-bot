@@ -2,7 +2,7 @@ import discord
 
 from beta_shard import Shard
 
-client = discord.Client(shard_id=0, shard_count=2)
+client = discord.Client(shard_id=0, shard_count=4)
 
 @client.event
 async def on_ready():
