@@ -2,7 +2,7 @@ import discord
 import asyncio
 import random
 import time
-import sqlite3
+import aiosqlite
 
 from cardcast import api
 
@@ -11,22 +11,10 @@ import info
 import tokens
 
 class Shard:
-    def __init__(self, shard, client, num_shards=4):
-        # SQL setup
-        if shard == 0:
-            self.conn = [sqlite3.connect('messages{0}.db'.format(x)) for x in range(1, num_shards)]
-            self.C = [k.cursor() for k in self.conn]
-        else:
-            self.conn = sqlite3.connect('messages{0}.db'.format(shard))
-            self.C = self.conn.cursor()
-            try:
-                self.C.execute("""create table Messages(id text, msg text);""")
-                self.conn.commit()
-            except:
-                pass
-        
+    def __init__(self, shard, client, num_shards=4):       
         self.shard = shard
         self.client = client
+        self.num_shards = num_shards
     
     async def deal(self, ch):
         """Deals cards to each player within a given channel."""
@@ -441,8 +429,19 @@ class Shard:
         await self.client.edit_message(config.C[ch]['msg'], s)
     
     async def on_ready(self):
-        print('Ready!')
         await self.client.change_presence(game=discord.Game(name='c!help'))
+        
+        # SQL setup
+        if self.shard != 0:
+            async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
+                C = await conn.cursor()
+                try:
+                    await C.execute("""create table Messages(id text, msg text);""")
+                    await conn.commit()
+                except:
+                    pass
+        
+        print('Ready!')
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
@@ -469,9 +468,11 @@ class Shard:
                                 break
                 else:
                     edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-                    for i in range(len(self.C)):
-                        self.C[i].execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
-                        self.conn[i].commit()
+                    for i in range(1, self.num_shards):
+                        async with aiosqlite.connect('messages{0}.db'.format(i)) as conn:
+                            C = await conn.cursor()
+                            await C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
+                            await conn.commit()
                 
                 return
         
@@ -491,10 +492,6 @@ class Shard:
                 if config.C[x]['started']:
                     nC += 1
             await self.client.send_message(ch, str(nC))
-            
-        # shard
-        if msg == c+'!shard':
-            await self.client.send_message(ch, str(self.shard))
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
@@ -519,6 +516,10 @@ class Shard:
         if msg == c+'!vote':
             await self.client.send_message(ch,
                 'Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>')
+        
+        # shard
+        if msg == c+'!shard':
+            await self.client.send_message(ch, str(self.shard))
         
         # custom prefix setting
         if len(msg) == 10 and msg[:9] == c+'!prefix ' and 'a' <= msg[9] <= 'z':
@@ -857,27 +858,27 @@ class Shard:
         await self.client.wait_until_ready()
         
         while not self.client.is_closed:
-            self.C.execute("""select * from Messages""")
-            msgs = self.C.fetchall()
-            
-            if len(msgs):
-                #print(msgs)
-                #print(config.P)
+            async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
+                C = await conn.cursor()
                 
-                for x in msgs:
-                    for au in config.P:
-                        if au.id == x[0]:
-                            for c in config.P[au]: # check all channels that user is in
-                                if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                                    i = config.C[c]['players'].index(au)
-                                    if '' in config.C[c]['hands'][i]: # check that player has a blank
-                                        j = config.C[c]['hands'][i].index('')
-                                        config.C[c]['hands'][i][j] = x[1]
-                                        await self.sendHand(c, i)
-                                        break
+                await C.execute("""select * from Messages""")
+                msgs = await C.fetchall()
                 
-                self.C.execute("""delete from Messages""")
-                self.conn.commit()
+                if len(msgs):
+                    for x in msgs:
+                        for au in config.P:
+                            if au.id == x[0]:
+                                for c in config.P[au]: # check all channels that user is in
+                                    if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                                        i = config.C[c]['players'].index(au)
+                                        if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                            j = config.C[c]['hands'][i].index('')
+                                            config.C[c]['hands'][i][j] = x[1]
+                                            await self.sendHand(c, i)
+                                            break
+                    
+                    await C.execute("""delete from Messages""")
+                    await conn.commit()
             
             await asyncio.sleep(1)
     
