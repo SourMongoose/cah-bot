@@ -16,5 +16,5 @@ async def on_message(message):
 async def on_reaction_add(reaction, user):
     await s.on_reaction_add(reaction, user)
 
-s = Shard(1, client)
+s = Shard(1, client, 2)
 s.run()

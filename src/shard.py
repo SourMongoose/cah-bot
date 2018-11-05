@@ -28,9 +28,9 @@ class Shard:
         
         config.C[ch]['played'][i] = False
         
-        # Czar is not dealt cards
-        if i == config.C[ch]['pov']:
-            return
+        # don't deal cards to czar
+        #if i == config.C[ch]['pov']:
+        #    return
         
         nCards = 10 if config.nCards(ch) < 3 else 12
         while len(config.C[ch]['hands'][i]) < nCards:
@@ -272,6 +272,8 @@ class Shard:
                 hasBlank = True
             msg += '**' + 'ABCDEFGHIJKL'[card] + ')** ' + s + '\n'
         
+        if config.C[ch]['pov'] == i:
+            msg += '\n**You are the Czar this round; you do NOT need to play any cards.**'
         msg += '\nBlack card:\n' + config.C[ch]['curr']
         msg = msg.replace('_', '\_'*5)
         
@@ -436,12 +438,12 @@ class Shard:
             async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
                 C = await conn.cursor()
                 try:
-                    await C.execute("""create table Messages(id text, msg text);""")
+                    await C.execute("""create table if not exists Messages(id text, msg text);""")
                     await conn.commit()
                 except:
                     pass
         
-        print('Ready!')
+        print('Ready shard {0}'.format(self.shard))
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
@@ -452,21 +454,32 @@ class Shard:
         ch = message.channel
         au = message.author
         
+        # ignore own messages
+        if au.id == '429024440060215296':
+            return
+        
         c = config.pre[ch.id] if ch.id in config.pre else 'c'
         
         # fill in blank cards
         if self.shard == 0:
-            if ch.is_private:
+            if ch.is_private and au.id != '429024440060215296':
+                # check for c!p or c!play
+                if (len(msg) > 3 and msg[:3] == c+'!p') or (len(msg) > 6 and msg[:6] == c+'!play'):
+                    await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
+                    return
+                
+                found = False
                 if au in config.P: # check that user has a blank card
                     for c in config.P[au]: # check all channels that user is in
                         if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
                             i = config.C[c]['players'].index(au)
                             if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                found = True
                                 j = config.C[c]['hands'][i].index('')
                                 config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
                                 await self.sendHand(c, i)
                                 break
-                else:
+                if not found:
                     edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
                     for i in range(1, self.num_shards):
                         async with aiosqlite.connect('messages{0}.db'.format(i)) as conn:
@@ -863,24 +876,23 @@ class Shard:
                 
                 await C.execute("""select * from Messages""")
                 msgs = await C.fetchall()
+                await C.execute("""delete from Messages""")
+                await conn.commit()
                 
-                if len(msgs):
-                    for x in msgs:
-                        for au in config.P:
-                            if au.id == x[0]:
-                                for c in config.P[au]: # check all channels that user is in
-                                    if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                                        i = config.C[c]['players'].index(au)
-                                        if '' in config.C[c]['hands'][i]: # check that player has a blank
-                                            j = config.C[c]['hands'][i].index('')
-                                            config.C[c]['hands'][i][j] = x[1]
-                                            await self.sendHand(c, i)
-                                            break
-                    
-                    await C.execute("""delete from Messages""")
-                    await conn.commit()
+            if len(msgs):
+                for x in msgs:
+                    for au in config.P:
+                        if au.id == x[0]:
+                            for c in config.P[au]: # check all channels that user is in
+                                if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                                    i = config.C[c]['players'].index(au)
+                                    if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                        j = config.C[c]['hands'][i].index('')
+                                        config.C[c]['hands'][i][j] = x[1]
+                                        await self.sendHand(c, i)
+                                        break
             
-            await asyncio.sleep(1)
+            await asyncio.sleep(3)
     
     def run(self):
         self.client.loop.create_task(self.timer_check())

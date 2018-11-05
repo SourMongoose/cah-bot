@@ -1,5 +1,9 @@
 changelog = \
-"""**10/23/18 Update:**
+"""**11/4/18 Update:**
+- Added warning when player tries to play card in private messages
+- Bug fixes for blank cards
+
+**10/23/18 Update:**
 - Private messages will now show the current black card
 - Added error message for when wrong number of cards are played
 
