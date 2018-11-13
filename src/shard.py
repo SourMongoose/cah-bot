@@ -928,7 +928,7 @@ class Shard:
     def run(self):
         self.client.loop.create_task(self.timer_check())
         if self.shard != 0: self.client.loop.create_task(self.blank_check())
-        self.client.loop.create_task(self.save_state())
+        #self.client.loop.create_task(self.save_state())
         
         # beta token
         #self.client.run(tokens.beta_id)

@@ -1,6 +1,6 @@
 changelog = \
 """**11/12/18 Update:**
-- Bot will occasionally save the current state, allowing users to resume an ongoing game after the bot goes down
+- [CURRENTLY DISABLED] Bot will occasionally save the current state, allowing users to resume an ongoing game after the bot goes down
 
 **11/4/18 Update:**
 - Added warning when player tries to play card in private messages
