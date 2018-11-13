@@ -736,6 +736,7 @@ class Shard:
                 if msg == c+'!display':
                     config.C[ch]['msg'] = None
                     await self.displayMid(ch)
+                    return
                 elif msg == c+'!leave' or msg == c+'!quit':
                     if not config.done(ch):
                         await self.removePlayer(ch, au)
@@ -764,6 +765,7 @@ class Shard:
                 elif msg == c+'!reset':
                     await config.reset(ch)
                     await self.client.send_message(ch, 'Game reset!')
+                    return
             else:
                 if msg == c+'!join':
                     if not config.done(ch):
