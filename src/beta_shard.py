@@ -3,6 +3,7 @@ import asyncio
 import random
 import time
 import aiosqlite
+import pickle
 
 from cardcast import api
 
@@ -15,6 +16,12 @@ class Shard:
         self.shard = shard
         self.client = client
         self.num_shards = num_shards
+        
+        try:
+            with open('state{0}.txt'.format(self.shard), 'rb') as f:
+                config.C = pickle.load(f)
+        except:
+            print('Error loading save state')
     
     async def deal(self, ch):
         """Deals cards to each player within a given channel."""
@@ -462,9 +469,9 @@ class Shard:
         
         # fill in blank cards
         if self.shard == 0:
-            if ch.is_private and au.id != '429024440060215296':
+            if ch.is_private:
                 # check for c!p or c!play
-                if (len(msg) > 3 and msg[:3] == c+'!p') or (len(msg) > 6 and msg[:6] == c+'!play'):
+                if len(msg) > 3 and msg[:3] == c+'!p':
                     await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
                     return
                 
@@ -509,7 +516,7 @@ class Shard:
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
             s = info.changelog
-            await self.client.send_message(ch, s[:s.index('**9/11')])
+            await self.client.send_message(ch, s[:s.index('**9/27')])
         
         # commands list
         if msg == c+'!commands' or msg == c+'!command':
@@ -828,9 +835,11 @@ class Shard:
         await self.client.wait_until_ready()
         
         while not self.client.is_closed:
+            start_time = time.time()
+            
             channels = list(config.C.keys())
             for ch in channels:
-                if config.C[ch]['started']:
+                if config.C[ch]['started'] and 'time' in config.C[ch]:
                     if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
                         if config.done(ch):
                             try:
@@ -866,13 +875,20 @@ class Shard:
                                             if len(cards) == N:
                                                 await self.play(ch, config.C[ch]['players'][p], cards)
                                                 break
-                            
+            
+            # debug
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 0.1: print('timer_check: {0}'.format(time.time() - start_time))
+            #print('number of channels: {0}'.format(len(channels)))
+            
             await asyncio.sleep(2)
     
     async def blank_check(self):
         await self.client.wait_until_ready()
         
         while not self.client.is_closed:
+            start_time = time.time()
+            
             async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
                 C = await conn.cursor()
                 
@@ -894,11 +910,25 @@ class Shard:
                                         await self.sendHand(c, i)
                                         break
             
+            # debug
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 0.5: print('blank_check: {0}'.format(time.time() - start_time))
+            
             await asyncio.sleep(3)
+    
+    async def save_state(self):
+        await self.client.wait_until_ready()
+        
+        while not self.client.is_closed:
+            with open('state{0}.txt'.format(self.shard), 'wb') as f:
+                pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
+            
+            await asyncio.sleep(5)
     
     def run(self):
         self.client.loop.create_task(self.timer_check())
         if self.shard != 0: self.client.loop.create_task(self.blank_check())
+        self.client.loop.create_task(self.save_state())
         
         # beta token
         self.client.run(tokens.beta_id)
