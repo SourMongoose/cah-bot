@@ -902,17 +902,22 @@ class Shard:
                 await conn.commit()
                 
             if len(msgs):
+                # dict that maps user IDs to corresponding users
+                s = {}
+                for au in config.P:
+                    s[au.id] = au
+                
                 for x in msgs:
-                    for au in config.P:
-                        if au.id == x[0]:
-                            for c in config.P[au]: # check all channels that user is in
-                                if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                                    i = config.C[c]['players'].index(au)
-                                    if '' in config.C[c]['hands'][i]: # check that player has a blank
-                                        j = config.C[c]['hands'][i].index('')
-                                        config.C[c]['hands'][i][j] = x[1]
-                                        await self.sendHand(c, i)
-                                        break
+                    if x[0] in s:
+                        au = s[x[0]]
+                        for c in config.P[au]: # check all channels that user is in
+                            if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                                i = config.C[c]['players'].index(au)
+                                if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                    j = config.C[c]['hands'][i].index('')
+                                    config.C[c]['hands'][i][j] = x[1]
+                                    await self.sendHand(c, i)
+                                    break
             
             # debug
             elapsed_time = time.time() - start_time
