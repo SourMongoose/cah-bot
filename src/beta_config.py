@@ -4474,7 +4474,7 @@ def temp():
         "Peter, Augustus, Alonzo, or James.",
         "Practical cats, dramatical cats, oratical cats, sceptical cats, romantical cats, parasitical cats, statistical cats, political cats, hypocritical cats, clerical cats, cynical cats, rabbinical cats.",
         "Rum Tum Tugger.",
-        "Shimbleshanks.",
+        "Skimbleshanks.",
         "Sir Andrew Lloyd Webber.",
         "The mystical divinity of unashamed felinity.",
         "Winkles and shrimps."]

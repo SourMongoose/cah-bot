@@ -461,11 +461,11 @@ class Shard:
         ch = message.channel
         au = message.author
         
+        c = config.pre[ch.id] if ch.id in config.pre else 'c'
+        
         # ignore own messages
         if au.id == '429024440060215296':
             return
-        
-        c = config.pre[ch.id] if ch.id in config.pre else 'c'
         
         # fill in blank cards
         if self.shard == 0:
@@ -495,6 +495,10 @@ class Shard:
                             await conn.commit()
                 
                 return
+        
+        # ignore irrelevant messages
+        if not (len(msg) > 2 and msg[:2] == c+'!'):
+            return
         
         if ch not in config.C:
             config.C[ch] = {}
@@ -878,7 +882,7 @@ class Shard:
             
             # debug
             elapsed_time = time.time() - start_time
-            if elapsed_time > 0.1: print('timer_check: {0}'.format(time.time() - start_time))
+            if elapsed_time > 2: print('timer_check: {0}'.format(time.time() - start_time))
             #print('number of channels: {0}'.format(len(channels)))
             
             await asyncio.sleep(2)
@@ -912,7 +916,7 @@ class Shard:
             
             # debug
             elapsed_time = time.time() - start_time
-            if elapsed_time > 0.5: print('blank_check: {0}'.format(time.time() - start_time))
+            if elapsed_time > 2: print('blank_check: {0}'.format(time.time() - start_time))
             
             await asyncio.sleep(3)
     
