@@ -516,6 +516,9 @@ class Shard:
                 if config.C[x]['started']:
                     nC += 1
             await self.client.send_message(ch, str(nC))
+        # save state
+        if (msg == c+'!save' or msg == c+'!savestate') and au.id == '252249185112293376':
+            self.save_state()
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
@@ -921,23 +924,17 @@ class Shard:
             
             # debug
             elapsed_time = time.time() - start_time
-            if elapsed_time > 2: print('blank_check: {0}'.format(time.time() - start_time))
+            if elapsed_time > 3: print('blank_check: {0}'.format(time.time() - start_time))
             
             await asyncio.sleep(3)
     
     async def save_state(self):
-        await self.client.wait_until_ready()
-        
-        while not self.client.is_closed:
-            with open('state{0}.txt'.format(self.shard), 'wb') as f:
-                pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
-            
-            await asyncio.sleep(5)
+        with open('state{0}.txt'.format(self.shard), 'wb') as f:
+            pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
     
     def run(self):
         self.client.loop.create_task(self.timer_check())
         if self.shard != 0: self.client.loop.create_task(self.blank_check())
-        self.client.loop.create_task(self.save_state())
         
         # beta token
         self.client.run(tokens.beta_id)
