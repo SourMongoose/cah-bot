@@ -834,16 +834,13 @@ class Shard:
                     if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
                         if config.done(ch):
                             try:
-                                await self.client.send_message(ch, "**TIME'S UP!**")
-                                
                                 # pick random letter
                                 letter = random.randint(0, len(config.C[ch]['mid'])-1)
                                 
                                 p = config.C[ch]['mid'][letter][1]
-                
                                 config.C[ch]['score'][p] += 1
                             
-                                msg = 'The bot randomly selected ' + 'ABCDEFGHIJ'[letter] + '.\n'
+                                msg = "**TIME'S UP!**\nThe bot randomly selected " + 'ABCDEFGHIJ'[letter] + '.\n'
                                 msg += config.C[ch]['players'][p].display_name + ' wins the round!'
                                 await self.client.send_message(ch, msg)
                                 await self.pass_(ch)
