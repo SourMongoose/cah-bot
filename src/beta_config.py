@@ -9641,25 +9641,14 @@ async def initChannel(ch):
 
 async def shuffle(ch):
     global C
-
-    newDeck = []
-    while len(C[ch]["black"]) != 0:
-        rm = random.randint(0,len(C[ch]["black"])-1)
-        newDeck.append(C[ch]["black"][rm])
-        C[ch]["black"] = C[ch]["black"][:rm] + C[ch]["black"][rm+1:]
-    C[ch]["black"] = newDeck
-    newDeck = []
-    while len(C[ch]["white"]) != 0:
-        rm = random.randint(0,len(C[ch]["white"])-1)
-        newDeck.append(C[ch]["white"][rm])
-        C[ch]["white"] = C[ch]["white"][:rm] + C[ch]["white"][rm+1:]
-    C[ch]["white"] = newDeck
+    
+    random.shuffle(C[ch]["black"])
+    random.shuffle(C[ch]["white"])
 
 async def nextBlack(ch):
     global C
     
-    card = C[ch]["black"][0]
-    C[ch]["black"] = C[ch]["black"][1:]
+    card = C[ch]["black"].pop(0)
     if C[ch]["curr"] != '':
         C[ch]["black"].append(C[ch]["curr"])
     return card
@@ -9699,18 +9688,17 @@ async def reset(ch):
     C[ch]["msg"] = None
 
 def nCards(ch):
-    n = 1
     if (C[ch]["curr"].count('_') == 2
         or "duo" in C[ch]["curr"]
         or "phrases" in C[ch]["curr"]
         or "(2)" in C[ch]["curr"]):
-        n = 2
+        return 2
     elif (C[ch]["curr"].count('_') == 3
         or "aiku" in C[ch]["curr"] 
         or "(3)" in C[ch]["curr"]):
-        n = 3
+        return 3
     
-    return n
+    return 1
 
 def done(ch):
     return C[ch]["played"].count(True) == C[ch]["nPlayers"]-1

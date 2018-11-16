@@ -28,7 +28,7 @@ class Shard:
         
         for i in range(config.C[ch]['nPlayers']):
             await self.dealOne(ch, i)
-        config.C[ch]['time'] = time.time()
+        config.C[ch]['time'] = time.time() # reset timer
     
     async def dealOne(self, ch, i):
         """Deal cards to one player in a given channel."""
@@ -41,8 +41,7 @@ class Shard:
         
         nCards = 10 if config.nCards(ch) < 3 else 12
         while len(config.C[ch]['hands'][i]) < nCards:
-            config.C[ch]['hands'][i].append(config.C[ch]['white'][0])
-            config.C[ch]['white'] = config.C[ch]['white'][1:]
+            config.C[ch]['hands'][i].append(config.C[ch]['white'].pop())
         await self.sendHand(ch,i)
     
     async def start_(self, ch):
@@ -214,7 +213,6 @@ class Shard:
     async def play(self, ch, p, s):
         s = s.strip().replace(' ','').replace(',','').replace('<','').replace('>','')
         
-        player = None
         # check that player is in current game
         try:
             player = config.C[ch]['players'].index(p)
@@ -255,13 +253,7 @@ class Shard:
             
             # all players are done
             if config.done(ch):
-                mid = []
-                while len(config.C[ch]['mid']) != 0:
-                    rm = random.randint(0,len(config.C[ch]['mid'])-1)
-                    mid.append(config.C[ch]['mid'][rm])
-                    config.C[ch]['mid'] = config.C[ch]['mid'][:rm] + config.C[ch]['mid'][rm+1:]
-                config.C[ch]['mid'] = mid
-                
+                random.shuffle(config.C[ch]['mid'])
                 config.C[ch]['time'] = time.time()
             
             await self.displayMid(ch)
@@ -286,20 +278,21 @@ class Shard:
         
         em = discord.Embed(title=t, description=msg, colour=0xBBBBBB)
         
+        player = config.C[ch]['players'][i]
         if hasBlank:
-            if config.C[ch]['players'][i] not in config.P:
-                config.P[config.C[ch]['players'][i]] = [ch]
-            elif ch not in config.P[config.C[ch]['players'][i]]:
-                config.P[config.C[ch]['players'][i]].append(ch)
+            if player not in config.P:
+                config.P[player] = [ch]
+            elif ch not in config.P[player]:
+                config.P[player].append(ch)
             em.set_footer(text='It looks like you have one or more blank cards.\nTo fill in the blank, simply message me your answer.')
         
         try:
-            await self.client.send_message(config.C[ch]['players'][i], embed=em)
+            await self.client.send_message(player, embed=em)
         except:
             try:
-                await self.client.send_message(ch, 'Unable to send hand to ' + config.C[ch]['players'][i].mention + ', do they have private messaging enabled?')
+                await self.client.send_message(ch, 'Unable to send hand to ' + player.mention + ', do they have private messaging enabled?')
             except:
-                print('Error getting player ' + str(i) + ' out of ' + str(config.C[ch]['nPlayers']))
+                pass
     
     async def displayMid(self, ch):
         # don't display if not enough players
@@ -362,7 +355,7 @@ class Shard:
         await self.client.send_message(ch, msg)
     
     async def addPlayer(self, ch, p):
-        if config.C[ch]['nPlayers'] < 10:
+        if config.C[ch]['nPlayers'] < 20:
             config.C[ch]['players'].append(p)
             config.C[ch]['nPlayers'] = len(config.C[ch]['players'])
             config.C[ch]['played'].append(False)
@@ -384,11 +377,8 @@ class Shard:
                 await self.client.send_message(ch, 'You have already played your cards and may not leave.')
                 return
             
-            config.C[ch]['players'] = config.C[ch]['players'][:i]+config.C[ch]['players'][i+1:]
-            config.C[ch]['played'] = config.C[ch]['played'][:i]+config.C[ch]['played'][i+1:]
-            config.C[ch]['hands'] = config.C[ch]['hands'][:i]+config.C[ch]['hands'][i+1:]
-            config.C[ch]['score'] = config.C[ch]['score'][:i]+config.C[ch]['score'][i+1:]
-            config.C[ch]['kick'] = config.C[ch]['kick'][:i]+config.C[ch]['kick'][i+1:]
+            for s in ['players', 'played', 'hands', 'score', 'kick']:
+                config.C[ch][s].pop(i)
             
             if i < config.C[ch]['pov']:
                 config.C[ch]['pov'] -= 1
@@ -403,17 +393,12 @@ class Shard:
             
             # all players are done
             if config.done(ch):
-                mid = []
-                while len(config.C[ch]['mid']) != 0:
-                    rm = random.randint(0,len(config.C[ch]['mid'])-1)
-                    mid.append(config.C[ch]['mid'][rm])
-                    config.C[ch]['mid'] = config.C[ch]['mid'][:rm] + config.C[ch]['mid'][rm+1:]
-                config.C[ch]['mid'] = mid
+                random.shuffle(config.C[ch]['mid'])
             
             if not kick:
                 await self.client.send_message(ch, p.display_name + ' has left the game.')
             await self.displayMid(ch)
-        if config.C[ch]['nPlayers'] < 2:
+        if config.C[ch]['nPlayers'] < 2: # number of players has been reduced to 1
             await config.reset(ch)
             await self.client.send_message(ch, 'Not enough players, game has been reset.')
     
@@ -450,7 +435,7 @@ class Shard:
                 except:
                     pass
         
-        print('Ready shard {0}'.format(self.shard))
+        print('Ready shard', self.shard)
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
@@ -528,8 +513,7 @@ class Shard:
         # commands list
         if msg == c+'!commands' or msg == c+'!command':
             await self.client.send_message(ch, info.commands)
-            #await self.client.send_message(ch, "You can find a list of available commands here:\nhttps://discordbots.org/bot/429024440060215296")
-        
+            
         # support server
         if msg == c+'!support' or msg == c+'!server' or msg == c+'!supp':
             await self.client.send_message(ch, 'https://discord.gg/qGjRSYQ')
