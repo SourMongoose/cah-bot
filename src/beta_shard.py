@@ -238,7 +238,7 @@ class Shard:
             if len(newMid) == config.nCards(ch):
                 config.C[ch]['mid'].append([newMid,player])
                 for c in newMid:
-                    config.C[ch]['white'].append(c)
+                    #config.C[ch]['white'].append(c)
                     config.C[ch]['hands'][player].remove(c)
                 config.C[ch]['played'][player] = True
                 await self.client.send_message(ch, p.display_name + ' has played!')
@@ -518,6 +518,10 @@ class Shard:
         if msg == c+'!support' or msg == c+'!server' or msg == c+'!supp':
             await self.client.send_message(ch, 'https://discord.gg/qGjRSYQ')
         
+        # FAQ
+        if msg == c+'!faq':
+            await self.client.send_message(ch, 'https://goo.gl/p9j2ve')
+        
         # invite link
         if msg == c+'!invite':
             await self.client.send_message(ch,
@@ -553,7 +557,8 @@ class Shard:
             if msg == c+'!help':
                 await self.client.send_message(ch, (
                     "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!cancel` to cancel an existing one.\n"
-                    "Use `{0}!commands` to bring up a list of available commands.").format(c))
+                    "Use `{0}!commands` to bring up a list of available commands.\n"
+                    "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
             elif msg == c+'!language english':
                 if config.C[ch]['lang'] != 'English':
                     config.C[ch]['lang'] = 'English'
@@ -835,7 +840,11 @@ class Shard:
                         if config.done(ch):
                             try:
                                 # pick random letter
-                                letter = random.randint(0, len(config.C[ch]['mid'])-1)
+                                l = len(config.C[ch]['mid'])
+                                if l == 0:
+                                    return
+                                else:
+                                    letter = random.randint(0, l-1)
                                 
                                 p = config.C[ch]['mid'][letter][1]
                                 config.C[ch]['score'][p] += 1
@@ -848,8 +857,12 @@ class Shard:
                                 if config.C[ch]['win'] in config.C[ch]['score']:
                                     await self.displayWinners(ch)
                                     await config.reset(ch)
-                            except:
-                                print('\nError with answer selection\n' + time.asctime() + '\n')
+                            except Exception as e:
+                                print('Error at', time.asctime())
+                                print(e)
+                                # unknown channel/missing access
+                                if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
+                                    config.C.pop(ch)
                         else:
                             await self.client.send_message(ch, "**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
                             
@@ -909,7 +922,7 @@ class Shard:
             
             await asyncio.sleep(3)
     
-    async def save_state(self):
+    def save_state(self):
         with open('state{0}.txt'.format(self.shard), 'wb') as f:
             pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
     
