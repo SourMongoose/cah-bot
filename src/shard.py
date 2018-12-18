@@ -12,7 +12,7 @@ import info
 import tokens
 
 class Shard:
-    def __init__(self, shard, client, num_shards=4):       
+    def __init__(self, shard, client, num_shards=3):       
         self.shard = shard
         self.client = client
         self.num_shards = num_shards
