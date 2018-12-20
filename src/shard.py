@@ -534,6 +534,11 @@ class Shard:
             await self.client.send_message(ch,
                 'Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>')
         
+        # donation links
+        if msg == c+'!donate':
+            await self.client.send_message(ch,
+                'Help support the bot:\n<http://buymeacoffee.com/sourmongoose>\n<https://paypal.me/sourmongoose>')
+        
         # shard
         if msg == c+'!shard':
             await self.client.send_message(ch, str(self.shard))
