@@ -462,24 +462,24 @@ class Shard:
                     await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
                     return
                 
-#                 found = False
-#                 if au in config.P: # check that user has a blank card
-#                     for c in config.P[au]: # check all channels that user is in
-#                         if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-#                             i = config.C[c]['players'].index(au)
-#                             if '' in config.C[c]['hands'][i]: # check that player has a blank
-#                                 found = True
-#                                 j = config.C[c]['hands'][i].index('')
-#                                 config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-#                                 await self.sendHand(c, i)
-#                                 break
-#                 if not found:
-#                     edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-#                     for i in range(1, self.num_shards):
-#                         async with aiosqlite.connect('messages{0}.db'.format(i)) as conn:
-#                             C = await conn.cursor()
-#                             await C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
-#                             await conn.commit()
+                found = False
+                if au in config.P: # check that user has a blank card
+                    for c in config.P[au]: # check all channels that user is in
+                        if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                            i = config.C[c]['players'].index(au)
+                            if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                found = True
+                                j = config.C[c]['hands'][i].index('')
+                                config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
+                                await self.sendHand(c, i)
+                                break
+                if not found:
+                    edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
+                    for i in range(1, self.num_shards):
+                        async with aiosqlite.connect('messages{0}.db'.format(i)) as conn:
+                            C = await conn.cursor()
+                            await C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
+                            await conn.commit()
                 
                 return
         
@@ -597,47 +597,47 @@ class Shard:
                 except:
                     pass
             elif len(msg) > 7 and msg[:7] == c+'!timer':
-                await self.client.send_message(ch, 'Idle timer is currently disabled.')
-#                 try:
-#                     n = int(msg[7:].strip())
-#                     if n >= 15:
-#                         config.C[ch]['timer'] = n
-#                         await self.client.send_message(ch, 'Idle timer set to ' + str(n) + ' seconds.')
-#                         await self.edit_start_msg(ch)
-#                     elif n == 0:
-#                         config.C[ch]['timer'] = n
-#                         await self.client.send_message(ch, 'Idle timer is now disabled.')
-#                         await self.edit_start_msg(ch)
-#                     else:
-#                         await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
-#                 except:
-#                     pass
+                #await self.client.send_message(ch, 'Idle timer is currently disabled.')
+                try:
+                    n = int(msg[7:].strip())
+                    if n >= 15:
+                        config.C[ch]['timer'] = n
+                        await self.client.send_message(ch, 'Idle timer set to ' + str(n) + ' seconds.')
+                        await self.edit_start_msg(ch)
+                    elif n == 0:
+                        config.C[ch]['timer'] = n
+                        await self.client.send_message(ch, 'Idle timer is now disabled.')
+                        await self.edit_start_msg(ch)
+                    else:
+                        await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
+                except:
+                    pass
             elif len(msg) > 10 and msg[:10] == c+'!settimer':
-                await self.client.send_message(ch, 'Idle timer is currently disabled.')
-#                 try:
-#                     n = int(msg[10:].strip())
-#                     if n >= 15:
-#                         config.C[ch]['timer'] = n
-#                         await self.client.send_message(ch, 'Idle timer set to " + str(n) + " seconds.')
-#                         await self.edit_start_msg(ch)
-#                     elif n == 0:
-#                         config.C[ch]['timer'] = n
-#                         await self.client.send_message(ch, 'Idle timer is now disabled.')
-#                         await self.edit_start_msg(ch)
-#                     else:
-#                         await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
-#                 except:
-#                     pass
+                #await self.client.send_message(ch, 'Idle timer is currently disabled.')
+                try:
+                    n = int(msg[10:].strip())
+                    if n >= 15:
+                        config.C[ch]['timer'] = n
+                        await self.client.send_message(ch, 'Idle timer set to " + str(n) + " seconds.')
+                        await self.edit_start_msg(ch)
+                    elif n == 0:
+                        config.C[ch]['timer'] = n
+                        await self.client.send_message(ch, 'Idle timer is now disabled.')
+                        await self.edit_start_msg(ch)
+                    else:
+                        await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
+                except:
+                    pass
             elif len(msg) > 10 and msg[:10] == c+'!setblank':
-                await self.client.send_message(ch, 'Blank cards are currently disabled.')
-#                 try:
-#                     n = int(msg[10:].strip())
-#                     if 0 <= n <= 30:
-#                         config.C[ch]['blanks'] = n
-#                         await self.client.send_message(ch, 'Number of blanks has been set to ' + str(n) + '.')
-#                         await self.edit_start_msg(ch)
-#                 except:
-#                     pass
+                #await self.client.send_message(ch, 'Blank cards are currently disabled.')
+                try:
+                    n = int(msg[10:].strip())
+                    if 0 <= n <= 30:
+                        config.C[ch]['blanks'] = n
+                        await self.client.send_message(ch, 'Number of blanks has been set to ' + str(n) + '.')
+                        await self.edit_start_msg(ch)
+                except:
+                    pass
             elif msg == c+'!packs':
                 output = ("**List of available packs:**\n"
                     "(pack code followed by name of pack, then number of black and white cards)\n"
@@ -942,8 +942,8 @@ class Shard:
         print('Saved!')
     
     def run(self):
-        #self.client.loop.create_task(self.timer_check())
-        #if self.shard != 0: self.client.loop.create_task(self.blank_check())
+        self.client.loop.create_task(self.timer_check())
+        if self.shard != 0: self.client.loop.create_task(self.blank_check())
         
         # beta token
         #self.client.run(tokens.beta_id)
