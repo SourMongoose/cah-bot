@@ -1,5 +1,9 @@
 changelog = \
-"""**11/22/18 Update:**
+"""**12/20/18 Update:**
+- Bot now uses auto-sharding
+- Added `c!donate`
+
+**11/22/18 Update:**
 - Added French as a language option
 - Added `c!faq`
 
@@ -109,6 +113,7 @@ Global commands:
 • c!invite - Brings up the bot's invite link
 • c!vote - Brings up a link to the bot's vote page on discordbots.org
 • c!prefix <letter> - Change command prefix to given letter
+• c!donate - Brings up donation links
 
 Pre-game commands:
 • c!start - Start a game of Cards Against Humanity
