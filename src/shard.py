@@ -327,8 +327,8 @@ class Shard:
                 config.C[ch]['msg'] = await self.client.send_message(ch, msg)
                 config.C[ch]['time'] = time.time()
             else:
-                #await self.client.edit_message(config.C[ch]['msg'], embed=em)
-                await self.client.edit_message(config.C[ch]['msg'], msg)
+                #await config.C[ch]['msg'].edit(embed=em)
+                await config.C[ch]['msg'].edit(msg)
         except Exception as e:
             print(f'[shard {self.shard}] Error in displayMid() at', time.asctime())
             print(e)
@@ -344,7 +344,7 @@ class Shard:
             error_occured = False
             for i in range(config.C[ch]['nPlayers']-1):
                 try:
-                    await self.client.add_reaction(config.C[ch]['msg'], letters[i])
+                    await config.C[ch]['msg'].add_reaction(letters[i])
                 except:
                     if not error_occured:
                         error_occured = True
@@ -424,7 +424,7 @@ class Shard:
         if not config.C[ch]['playerMenu']: return
         
         s = await self.get_start_msg(ch)
-        await self.client.edit_message(config.C[ch]['msg'], s)
+        await config.C[ch]['msg'].edit(s)
     
     async def on_ready(self):
         await self.client.change_presence(game=discord.Game(name='c!help'))
@@ -778,13 +778,13 @@ class Shard:
             if msg.startswith('c!play'):
                 await self.play(ch,au,msg[6:])
                 try:
-                    await self.client.delete_message(message)
+                    await message.delete()
                 except:
                     pass
             elif msg.startswith(c+'!p '):
                 await self.play(ch,au,msg[4:])
                 try:
-                    await self.client.delete_message(message)
+                    await message.delete()
                 except:
                     pass
             
