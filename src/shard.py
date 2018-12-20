@@ -17,11 +17,12 @@ class Shard:
         self.client = client
         self.num_shards = num_shards
         
+        # attempt to load a save state, if any
         try:
-            with open('state{0}.txt'.format(self.shard), 'rb') as f:
+            with open(f'state{self.shard}.txt', 'rb') as f:
                 config.C = pickle.load(f)
         except:
-            print('Error loading save state')
+            print(f'[shard {shard}] Error loading save state')
     
     async def deal(self, ch):
         """Deals cards to each player within a given channel."""
@@ -219,6 +220,7 @@ class Shard:
         except:
             return
         
+        # ignore czar/players who have already played card(s)
         if config.C[ch]['played'][player] or player == config.C[ch]['pov']:
             return
         
@@ -243,7 +245,7 @@ class Shard:
                 config.C[ch]['played'][player] = True
                 await self.client.send_message(ch, p.display_name + ' has played!')
             else:
-                await self.client.send_message(p, 'This prompt requires ' + str(config.nCards(ch)) + ' white card(s).')
+                await self.client.send_message(p, f'This prompt requires {config.nCards(ch)} white card(s).')
                 return
             
             # update kicks
@@ -261,13 +263,13 @@ class Shard:
             pass
     
     async def sendHand(self, ch, i):
-        t = 'Your white cards in #' + ch.name + ' (' + ch.server.name + '):'
+        t = f'Your white cards in #{ch.name} ({ch.server.name}):'
         msg = ''
         hasBlank = False
         for card in range(len(config.C[ch]['hands'][i])):
             s = config.C[ch]['hands'][i][card]
             if s == '':
-                s = "<blank card>"
+                s = '<blank card>'
                 hasBlank = True
             msg += '**' + 'ABCDEFGHIJKL'[card] + ')** ' + s + '\n'
         
@@ -328,7 +330,7 @@ class Shard:
                 #await self.client.edit_message(config.C[ch]['msg'], embed=em)
                 await self.client.edit_message(config.C[ch]['msg'], msg)
         except Exception as e:
-            print(time.asctime())
+            print(f'[shard {self.shard}] Error in displayMid() at', time.asctime())
             print(e)
             
             c = config.pre[ch.id] if ch.id in config.pre else 'c'
@@ -429,7 +431,7 @@ class Shard:
         
         # SQL setup
         if self.shard != 0:
-            async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
+            async with aiosqlite.connect(f'messages{self.shard}.db') as conn:
                 C = await conn.cursor()
                 try:
                     await C.execute("""create table if not exists Messages(id text, msg text);""")
@@ -437,7 +439,7 @@ class Shard:
                 except:
                     pass
         
-        print('Ready shard', self.shard)
+        print(f'[shard {self.shard}] Ready')
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
@@ -458,7 +460,7 @@ class Shard:
         if self.shard == 0:
             if ch.is_private:
                 # check for c!p or c!play
-                if len(msg) > 3 and msg[:3] == c+'!p':
+                if msg.startswith(c+'!p'):
                     await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
                     return
                 
@@ -476,7 +478,7 @@ class Shard:
                 if not found:
                     edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
                     for i in range(1, self.num_shards):
-                        async with aiosqlite.connect('messages{0}.db'.format(i)) as conn:
+                        async with aiosqlite.connect(f'messages{i}.db') as conn:
                             C = await conn.cursor()
                             await C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
                             await conn.commit()
@@ -484,7 +486,7 @@ class Shard:
                 return
         
         # ignore irrelevant messages
-        if not (len(msg) > 2 and msg[:2] == c+'!'):
+        if not msg.startswith(c+'!'):
             return
         
         if ch not in config.C:
@@ -492,7 +494,7 @@ class Shard:
             await config.initChannel(ch)
         
         # warning
-        if len(msg) > 9 and msg[:9] == c+'!warning' and au.id == '252249185112293376':
+        if msg.startswith(c+'!warning') and au.id == '252249185112293376':
             for x in config.C:
                 if config.C[x]['started']:
                     await self.client.send_message(x, message.content[9:])
@@ -592,22 +594,22 @@ class Shard:
                     
                     config.C[ch]['msg'] = None
                     await self.displayMid(ch)
-            elif len(msg) > 8 and msg[:8] == c+'!setwin':
+            elif msg.startswith(c+'!setwin'):
                 try:
                     n = int(msg[8:].strip())
                     if n > 0:
                         config.C[ch]['win'] = n
-                        await self.client.send_message(ch, 'Number of points needed to win has been set to ' + str(n) + '.')
+                        await self.client.send_message(ch, f'Number of points needed to win has been set to {n}.')
                         await self.edit_start_msg(ch)
                 except:
                     pass
-            elif len(msg) > 7 and msg[:7] == c+'!timer':
+            elif msg.startswith(c+'!timer') or msg.startswith(c+'!settimer'):
                 #await self.client.send_message(ch, 'Idle timer is currently disabled.')
                 try:
-                    n = int(msg[7:].strip())
+                    n = int(msg[msg.index('timer')+5:].strip())
                     if n >= 15:
                         config.C[ch]['timer'] = n
-                        await self.client.send_message(ch, 'Idle timer set to ' + str(n) + ' seconds.')
+                        await self.client.send_message(ch, f'Idle timer set to {n} seconds.')
                         await self.edit_start_msg(ch)
                     elif n == 0:
                         config.C[ch]['timer'] = n
@@ -617,30 +619,16 @@ class Shard:
                         await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
                 except:
                     pass
-            elif len(msg) > 10 and msg[:10] == c+'!settimer':
-                #await self.client.send_message(ch, 'Idle timer is currently disabled.')
-                try:
-                    n = int(msg[10:].strip())
-                    if n >= 15:
-                        config.C[ch]['timer'] = n
-                        await self.client.send_message(ch, 'Idle timer set to " + str(n) + " seconds.')
-                        await self.edit_start_msg(ch)
-                    elif n == 0:
-                        config.C[ch]['timer'] = n
-                        await self.client.send_message(ch, 'Idle timer is now disabled.')
-                        await self.edit_start_msg(ch)
-                    else:
-                        await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
-                except:
-                    pass
-            elif len(msg) > 10 and msg[:10] == c+'!setblank':
+            elif msg.startswith(c+'!blank') or msg.startswith(c+'!setblank'):
                 #await self.client.send_message(ch, 'Blank cards are currently disabled.')
                 try:
-                    n = int(msg[10:].strip())
+                    n = int(msg[msg.index('blank')+5:].strip())
                     if 0 <= n <= 30:
                         config.C[ch]['blanks'] = n
-                        await self.client.send_message(ch, 'Number of blanks has been set to ' + str(n) + '.')
+                        await self.client.send_message(ch, f'Number of blanks has been set to {n}.')
                         await self.edit_start_msg(ch)
+                    elif n > 30:
+                        await self.client.send_message(ch, 'Please choose a maximum of 30 cards.')
                 except:
                     pass
             elif msg == c+'!packs':
@@ -659,7 +647,7 @@ class Shard:
                     "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"
                     "Use `{0}!contents <code>` to see what cards are in a specific pack.").format(c)
                 await self.client.send_message(ch, output)
-            elif len(msg) > 10 and msg[:10] == c+'!contents':
+            elif msg.startswith(c+'!contents'):
                 pk = message.content[10:].strip()
                 
                 # check for CardCast packs
@@ -755,8 +743,8 @@ class Shard:
                         await self.removePlayer(ch, au)
                     else:
                         await self.client.send_message(ch, 'Please wait for the czar to pick a card before leaving.')
-                elif len(msg) > 7 and msg[:7] == c+'!kick ':
-                    mt = message.content[7:].strip() # player to kick
+                elif msg.startswith(c+'!kick'):
+                    mt = message.content[6:].strip() # player to kick
                     if mt == au.mention:
                         await self.client.send_message(ch, 'You cannot kick yourself. To leave the game, use `'+c+'!leave`.')
                     else:
@@ -787,13 +775,13 @@ class Shard:
                         await self.client.send_message(ch, 'Please wait for the czar to pick an answer before joining.')
             
             # playing cards
-            if len(msg) > 6 and msg[:6] == c+'!play':
+            if msg.startswith('c!play'):
                 await self.play(ch,au,msg[6:])
                 try:
                     await self.client.delete_message(message)
                 except:
                     pass
-            elif len(msg) > 4 and msg[:4] == c+'!p ':
+            elif msg.startswith(c+'!p '):
                 await self.play(ch,au,msg[4:])
                 try:
                     await self.client.delete_message(message)
@@ -878,23 +866,23 @@ class Shard:
                         else:
                             try:
                                 await self.client.send_message(ch, "**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
+                            
+                                N = config.nCards(ch)
+                                for p in range(len(config.C[ch]['players'])):
+                                    if not config.C[ch]['played'][p] and config.C[ch]['pov'] != p:
+                                        cards = ''
+                                        for c in range(len(config.C[ch]['hands'][p])):
+                                            if config.C[ch]['hands'][p][c]:
+                                                cards += 'abcdefghijkl'[c]
+                                                if len(cards) == N:
+                                                    await self.play(ch, config.C[ch]['players'][p], cards)
+                                                    break
                             except Exception as e:
                                 print('Error in timer_check at', time.asctime())
                                 print(e)
                                 # unknown channel/missing access
                                 if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
                                     config.C.pop(ch)
-                            
-                            N = config.nCards(ch)
-                            for p in range(len(config.C[ch]['players'])):
-                                if not config.C[ch]['played'][p] and config.C[ch]['pov'] != p:
-                                    cards = ''
-                                    for c in range(len(config.C[ch]['hands'][p])):
-                                        if config.C[ch]['hands'][p][c]:
-                                            cards += 'abcdefghijkl'[c]
-                                            if len(cards) == N:
-                                                await self.play(ch, config.C[ch]['players'][p], cards)
-                                                break
             
             # debug
             elapsed_time = time.time() - start_time
@@ -909,7 +897,7 @@ class Shard:
         while not self.client.is_closed:
             start_time = time.time()
             
-            async with aiosqlite.connect('messages{0}.db'.format(self.shard)) as conn:
+            async with aiosqlite.connect(f'messages{self.shard}.db') as conn:
                 C = await conn.cursor()
                 
                 await C.execute("""select * from Messages""")
@@ -942,9 +930,9 @@ class Shard:
             await asyncio.sleep(3)
     
     def save_state(self):
-        with open('state{0}.txt'.format(self.shard), 'wb') as f:
+        with open(f'state{self.shard}.txt', 'wb') as f:
             pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
-        print('Saved!')
+        print(f'[shard {self.shard}] Saved state')
     
     def run(self):
         self.client.loop.create_task(self.timer_check())
