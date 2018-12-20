@@ -830,7 +830,7 @@ class Shard:
     async def timer_check(self):
         await self.client.wait_until_ready()
         
-        while not self.client.is_closed:
+        while not self.client.is_closed():
             start_time = time.time()
             
             channels = list(config.C.keys())
@@ -894,7 +894,7 @@ class Shard:
     async def blank_check(self):
         await self.client.wait_until_ready()
         
-        while not self.client.is_closed:
+        while not self.client.is_closed():
             start_time = time.time()
             
             async with aiosqlite.connect(f'messages{self.shard}.db') as conn:
