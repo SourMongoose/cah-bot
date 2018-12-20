@@ -453,7 +453,7 @@ class Shard:
         c = config.pre[ch.id] if ch.id in config.pre else 'c'
         
         # ignore own messages
-        if au.id == '429024440060215296':
+        if au.id == 429024440060215296:
             return
         
         # fill in blank cards
@@ -494,19 +494,19 @@ class Shard:
             await config.initChannel(ch)
         
         # warning
-        if msg.startswith(c+'!warning') and au.id == '252249185112293376':
+        if msg.startswith(c+'!warning') and au.id == 252249185112293376:
             for x in config.C:
                 if config.C[x]['started']:
                     await self.client.send_message(x, message.content[9:])
         # check number of ongoing games
-        if msg == c+'!ongoing' and au.id == '252249185112293376':
+        if msg == c+'!ongoing' and au.id == 252249185112293376:
             nC = 0
             for x in config.C:
                 if config.C[x]['started']:
                     nC += 1
             await self.client.send_message(ch, str(nC))
         # save state
-        if (msg == c+'!save' or msg == c+'!savestate') and au.id == '252249185112293376':
+        if (msg == c+'!save' or msg == c+'!savestate') and au.id == 252249185112293376:
             self.save_state()
         
         # changelog
@@ -550,7 +550,7 @@ class Shard:
             await self.client.send_message(ch, 'Command prefix set to `' + msg[9] + '`!')
             config.pre[ch.id] = msg[9]
             with open('prefix.txt', 'a') as f:
-                f.write(ch.id + ' ' + msg[9] + '\n')
+                f.write(str(ch.id) + ' ' + msg[9] + '\n')
         
         if not config.C[ch]['started']:
             # language change
@@ -789,7 +789,7 @@ class Shard:
                     pass
             
             # admin override
-            if au.id == '252249185112293376' or au.permissions_in(ch).administrator:
+            if au.id == 252249185112293376 or au.permissions_in(ch).administrator:
                 if msg == c+'!display':
                     config.C[ch]['msg'] = None
                     await self.displayMid(ch)
