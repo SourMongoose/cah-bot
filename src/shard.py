@@ -2,7 +2,6 @@ import discord
 import asyncio
 import random
 import time
-import aiosqlite
 import pickle
 
 from cardcast import api
@@ -12,17 +11,15 @@ import info
 import tokens
 
 class Shard:
-    def __init__(self, shard, client, num_shards=3):       
-        self.shard = shard
+    def __init__(self, client):
         self.client = client
-        self.num_shards = num_shards
         
         # attempt to load a save state, if any
         try:
-            with open(f'state{self.shard}.txt', 'rb') as f:
+            with open('state.txt', 'rb') as f:
                 config.C = pickle.load(f)
         except:
-            print(f'[shard {shard}] Error loading save state')
+            print('Error loading save state')
     
     async def deal(self, ch):
         """Deals cards to each player within a given channel."""
@@ -329,7 +326,7 @@ class Shard:
                 #await config.C[ch]['msg'].edit(embed=em)
                 await config.C[ch]['msg'].edit(msg)
         except Exception as e:
-            print(f'[shard {self.shard}] Error in displayMid() at', time.asctime())
+            print('Error in displayMid() at', time.asctime())
             print(e)
             
             c = config.pre[ch.id] if ch.id in config.pre else 'c'
@@ -426,17 +423,7 @@ class Shard:
     async def on_ready(self):
         await self.client.change_presence(game=discord.Game(name='c!help'))
         
-        # SQL setup
-        if self.shard != 0:
-            async with aiosqlite.connect(f'messages{self.shard}.db') as conn:
-                C = await conn.cursor()
-                try:
-                    await C.execute("""create table if not exists Messages(id text, msg text);""")
-                    await conn.commit()
-                except:
-                    pass
-        
-        print(f'[shard {self.shard}] Ready')
+        print('Ready')
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
@@ -454,33 +441,22 @@ class Shard:
             return
         
         # fill in blank cards
-        if self.shard == 0:
-            if isinstance(ch, discord.abc.PrivateChannel):
-                # check for c!p or c!play
-                if msg.startswith(c+'!p'):
-                    await au.send('Please play your card(s) in the corresponding channel and not as a private message.')
-                    return
-                
-                found = False
-                if au in config.P: # check that user has a blank card
-                    for c in config.P[au]: # check all channels that user is in
-                        if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                            i = config.C[c]['players'].index(au)
-                            if '' in config.C[c]['hands'][i]: # check that player has a blank
-                                found = True
-                                j = config.C[c]['hands'][i].index('')
-                                config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-                                await self.sendHand(c, i)
-                                break
-                if not found:
-                    edited_msg = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-                    for i in range(1, self.num_shards):
-                        async with aiosqlite.connect(f'messages{i}.db') as conn:
-                            C = await conn.cursor()
-                            await C.execute("""insert into Messages values (?, ?)""", (au.id, edited_msg))
-                            await conn.commit()
-                
+        if isinstance(ch, discord.abc.PrivateChannel):
+            # check for c!p or c!play
+            if msg.startswith(c+'!p'):
+                await au.send('Please play your card(s) in the corresponding channel and not as a private message.')
                 return
+            
+            if au in config.P: # check that user has a blank card
+                for c in config.P[au]: # check all channels that user is in
+                    if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                        i = config.C[c]['players'].index(au)
+                        if '' in config.C[c]['hands'][i]: # check that player has a blank
+                            j = config.C[c]['hands'][i].index('')
+                            config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
+                            await self.sendHand(c, i)
+                            break
+            return
         
         # ignore irrelevant messages
         if not msg.startswith(c+'!'):
@@ -534,10 +510,6 @@ class Shard:
         # donation links
         if msg == c+'!donate':
             await ch.send('Help support the bot:\n<http://buymeacoffee.com/sourmongoose>\n<https://paypal.me/sourmongoose>')
-        
-        # shard
-        if msg == c+'!shard':
-            await ch.send(str(self.shard))
         
         # custom prefix setting
         if len(msg) == 10 and msg[:9] == c+'!prefix ' and 'a' <= msg[9] <= 'z':
@@ -879,57 +851,18 @@ class Shard:
             
             # debug
             elapsed_time = time.time() - start_time
-            #if elapsed_time > 2: print('[shard {0}] timer_check: {1}'.format(self.shard, time.time() - start_time))
+            #if elapsed_time > 2: print('timer_check: {0}'.format(time.time() - start_time))
             #print('number of channels: {0}'.format(len(channels)))
             
             await asyncio.sleep(2)
     
-    async def blank_check(self):
-        await self.client.wait_until_ready()
-        
-        while not self.client.is_closed():
-            start_time = time.time()
-            
-            async with aiosqlite.connect(f'messages{self.shard}.db') as conn:
-                C = await conn.cursor()
-                
-                await C.execute("""select * from Messages""")
-                msgs = await C.fetchall()
-                await C.execute("""delete from Messages""")
-                await conn.commit()
-                
-            if len(msgs):
-                # dict that maps user IDs to corresponding users
-                s = {}
-                for au in config.P:
-                    s[au.id] = au
-                
-                for x in msgs:
-                    if x[0] in s:
-                        au = s[x[0]]
-                        for c in config.P[au]: # check all channels that user is in
-                            if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                                i = config.C[c]['players'].index(au)
-                                if '' in config.C[c]['hands'][i]: # check that player has a blank
-                                    j = config.C[c]['hands'][i].index('')
-                                    config.C[c]['hands'][i][j] = x[1]
-                                    await self.sendHand(c, i)
-                                    break
-            
-            # debug
-            elapsed_time = time.time() - start_time
-            #if elapsed_time > 3: print('[shard {0}] blank_check: {1}'.format(self.shard, time.time() - start_time))
-            
-            await asyncio.sleep(3)
-    
     def save_state(self):
-        with open(f'state{self.shard}.txt', 'wb') as f:
+        with open('state.txt', 'wb') as f:
             pickle.dump(config.C, f, protocol=pickle.HIGHEST_PROTOCOL)
-        print(f'[shard {self.shard}] Saved state')
+        print('Saved state')
     
     def run(self):
         self.client.loop.create_task(self.timer_check())
-        if self.shard != 0: self.client.loop.create_task(self.blank_check())
         
         # beta token
         #self.client.run(tokens.beta_id)
