@@ -149,7 +149,7 @@ class Shard:
         if total:
             msg = 'Successfully added ' + str(success) + ' out of ' + str(total) + (' packs' if total > 1 else ' pack')
             if added: msg += '\n' + str(added) + (' packs' if added > 1 else ' pack') + ' already added'
-            await self.client.send_message(ch, msg)
+            await ch.send(msg)
             await self.edit_start_msg(ch)
     
     async def removePack(self, ch, s):
@@ -165,7 +165,7 @@ class Shard:
                 config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in [''.join(c['text']) for c in w]]
                 
                 config.C[ch]['packs'].remove(s)
-                await self.client.send_message(ch, s + ' removed!')
+                await ch.send(s + ' removed!')
         except:
             pass
         
@@ -177,14 +177,14 @@ class Shard:
                 config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in eval('config.white_'+p)]
                 
                 config.C[ch]['packs'].remove(p)
-                await self.client.send_message(ch, config.packs[p] + ' removed!')
+                await ch.send(config.packs[p] + ' removed!')
         for p in config.thirdparty:
             if p in s and p in config.C[ch]['packs']:
                 config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in eval('config.black_'+p)]
                 config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in eval('config.white_'+p)]
                 
                 config.C[ch]['packs'].remove(p)
-                await self.client.send_message(ch, config.thirdparty[p] + ' removed!')
+                await ch.send(config.thirdparty[p] + ' removed!')
         
         # remove red, green, and blue expansions
         if s == 'rgb':
@@ -195,7 +195,7 @@ class Shard:
             config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in config.black]
             config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in config.white]
             config.C[ch]['packs'].remove('base')
-            await self.client.send_message(ch, 'Base Cards Against Humanity removed!')
+            await ch.send('Base Cards Against Humanity removed!')
         
         # remove all packs
         if len(config.C[ch]['black']) * len(config.C[ch]['white']) == 0 or s == 'all':
@@ -207,7 +207,7 @@ class Shard:
                 config.C[ch]['white'] = list(eval('config.white_'+config.languages[config.C[ch]['lang']]))
             
             config.C[ch]['packs'] = ['base']
-            await self.client.send_message(ch, 'No cards left. Reverting to base pack')
+            await ch.send('No cards left. Reverting to base pack')
         
         await self.edit_start_msg(ch)
     
@@ -232,8 +232,7 @@ class Shard:
                     return
                 # check for blank
                 if card == '':
-                    await self.client.send_message(p,
-                        "You tried to send a blank card without filling it in first!\nMessage me what you'd like to put in the blank.")
+                    await p.send("You tried to send a blank card without filling it in first!\nMessage me what you'd like to put in the blank.")
                     return
                 newMid.append(card)
     
@@ -243,9 +242,9 @@ class Shard:
                     #config.C[ch]['white'].append(c)
                     config.C[ch]['hands'][player].remove(c)
                 config.C[ch]['played'][player] = True
-                await self.client.send_message(ch, p.display_name + ' has played!')
+                await ch.send(p.display_name + ' has played!')
             else:
-                await self.client.send_message(p, f'This prompt requires {config.nCards(ch)} white card(s).')
+                await p.send(f'This prompt requires {config.nCards(ch)} white card(s).')
                 return
             
             # update kicks
@@ -289,10 +288,10 @@ class Shard:
             em.set_footer(text='It looks like you have one or more blank cards.\nTo fill in the blank, simply message me your answer.')
         
         try:
-            await self.client.send_message(player, embed=em)
+            await player.send(embed=em)
         except:
             try:
-                await self.client.send_message(ch, 'Unable to send hand to ' + player.mention + ', do they have private messaging enabled?')
+                await ch.send('Unable to send hand to ' + player.mention + ', do they have private messaging enabled?')
             except:
                 pass
     
@@ -323,8 +322,8 @@ class Shard:
         try:
             #em = discord.Embed(description=msg, colour=0xBBBBBB)
             if config.C[ch]['msg'] == None or config.done(ch):
-                #config.C[ch]['msg'] = await self.client.send_message(ch, embed=em)
-                config.C[ch]['msg'] = await self.client.send_message(ch, msg)
+                #config.C[ch]['msg'] = await ch.send(embed=em)
+                config.C[ch]['msg'] = await ch.send(msg)
                 config.C[ch]['time'] = time.time()
             else:
                 #await config.C[ch]['msg'].edit(embed=em)
@@ -334,8 +333,7 @@ class Shard:
             print(e)
             
             c = config.pre[ch.id] if ch.id in config.pre else 'c'
-            await self.client.send_message(ch,
-                'Encountered error while displaying - answer selection may not function normally. If the czar is unable to select, try using `'+c+'!display`.')
+            await ch.send('Encountered error while displaying - answer selection may not function normally. If the czar is unable to select, try using `'+c+'!display`.')
             return
         
         if config.done(ch):
@@ -348,15 +346,14 @@ class Shard:
                 except:
                     if not error_occured:
                         error_occured = True
-                        await self.client.send_message(ch,
-                            'An error occurred while adding a letter; if the letter of your choice is not shown, please choose it by adding the letter manually.')
+                        await ch.send('An error occurred while adding a letter; if the letter of your choice is not shown, please choose it by adding the letter manually.')
     
     async def displayWinners(self, ch):
         winner = config.C[ch]['score'].index(max(config.C[ch]['score']))
         msg = '\U0001F947' + ' ' + config.C[ch]['players'][winner].display_name + '\n'
         c = config.pre[ch.id] if ch.id in config.pre else 'c'
         msg += 'Use `'+c+'!start` to start another game!'
-        await self.client.send_message(ch, msg)
+        await ch.send(msg)
     
     async def addPlayer(self, ch, p):
         if config.C[ch]['nPlayers'] < 20:
@@ -367,18 +364,18 @@ class Shard:
             config.C[ch]['hands'].append([])
             config.C[ch]['kick'].append('')
             
-            await self.client.send_message(ch, p.display_name + ' has joined the game.')
+            await ch.send(p.display_name + ' has joined the game.')
             await self.dealOne(ch,config.C[ch]['nPlayers']-1)
             await self.displayMid(ch)
         else:
-            await self.client.send_message(ch, 'Game is at max capacity!')
+            await ch.send('Game is at max capacity!')
     
     async def removePlayer(self, ch, p, kick=False):
         if p in config.C[ch]['players']:
             i = config.C[ch]['players'].index(p)
             
             if config.C[ch]['played'][i]:
-                await self.client.send_message(ch, 'You have already played your cards and may not leave.')
+                await ch.send('You have already played your cards and may not leave.')
                 return
             
             for s in ['players', 'played', 'hands', 'score', 'kick']:
@@ -400,11 +397,11 @@ class Shard:
                 random.shuffle(config.C[ch]['mid'])
             
             if not kick:
-                await self.client.send_message(ch, p.display_name + ' has left the game.')
+                await ch.send(p.display_name + ' has left the game.')
             await self.displayMid(ch)
         if config.C[ch]['nPlayers'] < 2: # number of players has been reduced to 1
             await config.reset(ch)
-            await self.client.send_message(ch, 'Not enough players, game has been reset.')
+            await ch.send('Not enough players, game has been reset.')
     
     async def get_start_msg(self, ch):
         c = config.pre[ch.id] if ch.id in config.pre else 'c'
@@ -461,7 +458,7 @@ class Shard:
             if isinstance(ch, discord.abc.PrivateChannel):
                 # check for c!p or c!play
                 if msg.startswith(c+'!p'):
-                    await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
+                    await au.send('Please play your card(s) in the corresponding channel and not as a private message.')
                     return
                 
                 found = False
@@ -497,14 +494,14 @@ class Shard:
         if msg.startswith(c+'!warning') and au.id == 252249185112293376:
             for x in config.C:
                 if config.C[x]['started']:
-                    await self.client.send_message(x, message.content[9:])
+                    await x.send(message.content[9:])
         # check number of ongoing games
         if msg == c+'!ongoing' and au.id == 252249185112293376:
             nC = 0
             for x in config.C:
                 if config.C[x]['started']:
                     nC += 1
-            await self.client.send_message(ch, str(nC))
+            await ch.send(str(nC))
         # save state
         if (msg == c+'!save' or msg == c+'!savestate') and au.id == 252249185112293376:
             self.save_state()
@@ -512,42 +509,39 @@ class Shard:
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
             s = info.changelog
-            await self.client.send_message(ch, s[:s.index('**9/27')])
+            await ch.send(s[:s.index('**9/27')])
         
         # commands list
         if msg == c+'!commands' or msg == c+'!command':
-            await self.client.send_message(ch, info.commands)
+            await ch.send(info.commands)
             
         # support server
         if msg == c+'!support' or msg == c+'!server' or msg == c+'!supp':
-            await self.client.send_message(ch, 'https://discord.gg/qGjRSYQ')
+            await ch.send('https://discord.gg/qGjRSYQ')
         
         # FAQ
         if msg == c+'!faq':
-            await self.client.send_message(ch, 'https://goo.gl/p9j2ve')
+            await ch.send('https://goo.gl/p9j2ve')
         
         # invite link
         if msg == c+'!invite':
-            await self.client.send_message(ch,
-                'Use this link to invite the bot to your own server:\n<https://discordapp.com/api/oauth2/authorize?client_id=429024440060215296&permissions=134294592&scope=bot>')
+            await ch.send('Use this link to invite the bot to your own server:\n<https://discordapp.com/api/oauth2/authorize?client_id=429024440060215296&permissions=134294592&scope=bot>')
         
         # vote link
         if msg == c+'!vote':
-            await self.client.send_message(ch,
-                'Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>')
+            await ch.send('Use this link to vote for the bot on discordbots.org:\n<https://discordbots.org/bot/429024440060215296/vote>')
         
         # donation links
         if msg == c+'!donate':
-            await self.client.send_message(ch,
-                'Help support the bot:\n<http://buymeacoffee.com/sourmongoose>\n<https://paypal.me/sourmongoose>')
+            await ch.send('Help support the bot:\n<http://buymeacoffee.com/sourmongoose>\n<https://paypal.me/sourmongoose>')
         
         # shard
         if msg == c+'!shard':
-            await self.client.send_message(ch, str(self.shard))
+            await ch.send(str(self.shard))
         
         # custom prefix setting
         if len(msg) == 10 and msg[:9] == c+'!prefix ' and 'a' <= msg[9] <= 'z':
-            await self.client.send_message(ch, 'Command prefix set to `' + msg[9] + '`!')
+            await ch.send('Command prefix set to `' + msg[9] + '`!')
             config.pre[ch.id] = msg[9]
             with open('prefix.txt', 'a') as f:
                 f.write(str(ch.id) + ' ' + msg[9] + '\n')
@@ -560,11 +554,11 @@ class Shard:
                         config.C[ch]['lang'] = l
                         config.C[ch]['black'] = list(eval('config.black_'+config.languages[l]))
                         config.C[ch]['white'] = list(eval('config.white_'+config.languages[l]))
-                        await self.client.send_message(ch, 'Language changed to ' + l + '.')
+                        await ch.send('Language changed to ' + l + '.')
                         await self.edit_start_msg(ch)
             
             if msg == c+'!help':
-                await self.client.send_message(ch, (
+                await ch.send((
                     "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!cancel` to cancel an existing one.\n"
                     "Use `{0}!commands` to bring up a list of available commands.\n"
                     "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
@@ -573,24 +567,23 @@ class Shard:
                     config.C[ch]['lang'] = 'English'
                     config.C[ch]['black'] = config.black
                     config.C[ch]['white'] = config.white
-                    await self.client.send_message(ch, 'Language changed to English.')
+                    await ch.send('Language changed to English.')
                     await self.edit_start_msg(ch)
             elif msg == c+'!start':
                 if not config.C[ch]['playerMenu']:
                     config.C[ch]['playerMenu'] = True
                     config.C[ch]['players'].append(au)
                     s = await self.get_start_msg(ch)
-                    config.C[ch]['msg'] = await self.client.send_message(ch, s)
+                    config.C[ch]['msg'] = await ch.send(s)
                     output = str(len(config.C[ch]['players'])) + '/20 Players: '
                     output += ', '.join(usr.display_name for usr in config.C[ch]['players'])
-                    await self.client.send_message(ch, output)
+                    await ch.send(output)
                 elif 2 <= len(config.C[ch]['players']) <= 20:
                     config.C[ch]['playerMenu'] = False
                     config.C[ch]['nPlayers'] = len(config.C[ch]['players'])
                     await self.start_(ch)
                     
-                    await self.client.send_message(ch,
-                        'Game is starting!\n' + ' '.join(usr.mention for usr in config.C[ch]['players']))
+                    await ch.send('Game is starting!\n' + ' '.join(usr.mention for usr in config.C[ch]['players']))
                     
                     config.C[ch]['msg'] = None
                     await self.displayMid(ch)
@@ -599,36 +592,36 @@ class Shard:
                     n = int(msg[8:].strip())
                     if n > 0:
                         config.C[ch]['win'] = n
-                        await self.client.send_message(ch, f'Number of points needed to win has been set to {n}.')
+                        await ch.send(f'Number of points needed to win has been set to {n}.')
                         await self.edit_start_msg(ch)
                 except:
                     pass
             elif msg.startswith(c+'!timer') or msg.startswith(c+'!settimer'):
-                #await self.client.send_message(ch, 'Idle timer is currently disabled.')
+                #await ch.send('Idle timer is currently disabled.')
                 try:
                     n = int(msg[msg.index('timer')+5:].strip())
                     if n >= 15:
                         config.C[ch]['timer'] = n
-                        await self.client.send_message(ch, f'Idle timer set to {n} seconds.')
+                        await ch.send(f'Idle timer set to {n} seconds.')
                         await self.edit_start_msg(ch)
                     elif n == 0:
                         config.C[ch]['timer'] = n
-                        await self.client.send_message(ch, 'Idle timer is now disabled.')
+                        await ch.send('Idle timer is now disabled.')
                         await self.edit_start_msg(ch)
                     else:
-                        await self.client.send_message(ch, 'Please choose a minimum of 15 seconds.')
+                        await ch.send('Please choose a minimum of 15 seconds.')
                 except:
                     pass
             elif msg.startswith(c+'!blank') or msg.startswith(c+'!setblank'):
-                #await self.client.send_message(ch, 'Blank cards are currently disabled.')
+                #await ch.send('Blank cards are currently disabled.')
                 try:
                     n = int(msg[msg.index('blank')+5:].strip())
                     if 0 <= n <= 30:
                         config.C[ch]['blanks'] = n
-                        await self.client.send_message(ch, f'Number of blanks has been set to {n}.')
+                        await ch.send(f'Number of blanks has been set to {n}.')
                         await self.edit_start_msg(ch)
                     elif n > 30:
-                        await self.client.send_message(ch, 'Please choose a maximum of 30 cards.')
+                        await ch.send('Please choose a maximum of 30 cards.')
                 except:
                     pass
             elif msg == c+'!packs':
@@ -638,7 +631,7 @@ class Shard:
                 for p in config.packs:
                     output += '**'+p+'** - ' + config.packs[p] \
                         + ' (' + str(len(eval('config.black_'+p))) + '/' + str(len(eval('config.white_'+p))) + ')\n'
-                await self.client.send_message(ch, output)
+                await ch.send(output)
                 output = '\nThird party packs:\n'
                 for p in config.thirdparty:
                     output += '**'+p+'** - ' + config.thirdparty[p] \
@@ -646,7 +639,7 @@ class Shard:
                 output += ("\nUse `{0}!add <code>` to add a pack, or use `{0}!add all` to add all available packs.\n"
                     "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"
                     "Use `{0}!contents <code>` to see what cards are in a specific pack.").format(c)
-                await self.client.send_message(ch, output)
+                await ch.send(output)
             elif msg.startswith(c+'!contents'):
                 pk = message.content[10:].strip()
                 
@@ -661,15 +654,15 @@ class Shard:
                     for c in deck_b:
                         output += '- ' + c + '\n'
                         if len(output) > 1500:
-                            await self.client.send_message(ch, output.replace('_','\_'*3))
+                            await ch.send(output.replace('_','\_'*3))
                             output = ''
                     output += '\n**White cards:** (' + str(len(deck_w)) + ')\n'
                     for c in deck_w:
                         output += '- ' + c + '\n'
                         if len(output) > 1500:
-                            await self.client.send_message(ch, output.replace('_','\_'*3))
+                            await ch.send(output.replace('_','\_'*3))
                             output = ''
-                    await self.client.send_message(ch, output.replace('_','\_'*3))
+                    await ch.send(output.replace('_','\_'*3))
                     
                     return
                 except:
@@ -688,20 +681,20 @@ class Shard:
                     for c in eval('config.black_'+pk):
                         output += '- ' + c + '\n'
                         if len(output) > 1500:
-                            await self.client.send_message(ch, output.replace('_','\_'*3))
+                            await ch.send(output.replace('_','\_'*3))
                             output = ''
                     output += '\n**White cards:** (' + str(len(eval('config.white_'+pk))) + ')\n'
                     for c in eval('config.white_'+pk):
                         output += '- ' + c + '\n'
                         if len(output) > 1500:
-                            await self.client.send_message(ch, output.replace('_','\_'*3))
+                            await ch.send(output.replace('_','\_'*3))
                             output = ''
-                    await self.client.send_message(ch, output.replace('_','\_'*3))
+                    await ch.send(output.replace('_','\_'*3))
             elif msg == c+'!cancel':
                 if config.C[ch]['playerMenu']:
                     config.C[ch]['playerMenu'] = False
                     config.C[ch]['players'] = []
-                    await self.client.send_message(ch, 'Game cancelled!')
+                    await ch.send('Game cancelled!')
             
             if config.C[ch]['playerMenu']:
                 curr = len(config.C[ch]['players'])
@@ -714,7 +707,7 @@ class Shard:
                 if curr != len(config.C[ch]['players']):
                     output = str(len(config.C[ch]['players'])) + '/20 Players: '
                     output += ', '.join(usr.display_name for usr in config.C[ch]['players'])
-                    await self.client.send_message(ch, output)
+                    await ch.send(output)
                 if len(msg) > 6 and msg[:6] == c+'!add ' and config.C[ch]['lang'] == 'English':
                     await self.addPack(ch, message.content[6:])
                 if len(msg) > 9 and msg[:9] == c+'!remove ' and config.C[ch]['lang'] == 'English':
@@ -723,7 +716,7 @@ class Shard:
                     await self.removePack(ch, message.content[5:])
         else:
             if msg == c+'!help':
-                await self.client.send_message(ch, (
+                await ch.send((
                     "To play white cards, use `{0}!play` followed by the letters next to the cards you want to play. "
                     "For example, `{0}!play b` would play card B, and `{0}!play df` would play cards D and F.\n"
                     "If you're the czar, react with the letter of your choice once everyone has played their cards.\n"
@@ -742,11 +735,11 @@ class Shard:
                     if not config.done(ch):
                         await self.removePlayer(ch, au)
                     else:
-                        await self.client.send_message(ch, 'Please wait for the czar to pick a card before leaving.')
+                        await ch.send('Please wait for the czar to pick a card before leaving.')
                 elif msg.startswith(c+'!kick'):
                     mt = message.content[6:].strip() # player to kick
                     if mt == au.mention:
-                        await self.client.send_message(ch, 'You cannot kick yourself. To leave the game, use `'+c+'!leave`.')
+                        await ch.send('You cannot kick yourself. To leave the game, use `'+c+'!leave`.')
                     else:
                         for i in range(len(config.C[ch]['players'])):
                             p = config.C[ch]['players'][i]
@@ -754,25 +747,25 @@ class Shard:
                                 if not config.C[ch]['played'][i]:
                                     config.C[ch]['kick'][config.C[ch]['players'].index(au)] = p.mention
                                     cnt = config.C[ch]['kick'].count(p.mention)
-                                    await self.client.send_message(ch, au.mention + ' has voted to kick ' + p.mention + '. ' \
+                                    await ch.send(au.mention + ' has voted to kick ' + p.mention + '. ' \
                                         + str(cnt) + '/' + str(config.C[ch]['nPlayers']-1) + ' votes needed')
                                     if cnt == config.C[ch]['nPlayers'] - 1:
-                                        await self.client.send_message(ch, p.mention + ' has been kicked from the game.')
+                                        await ch.send(p.mention + ' has been kicked from the game.')
                                         await self.removePlayer(ch, p, kick=True)
                                 else:
-                                    await self.client.send_message(ch, 'This player has already played and cannot be kicked.')
+                                    await ch.send('This player has already played and cannot be kicked.')
                                 
                                 break
                 elif msg == c+'!reset':
                     await config.reset(ch)
-                    await self.client.send_message(ch, 'Game reset!')
+                    await ch.send('Game reset!')
                     return
             else:
                 if msg == c+'!join':
                     if not config.done(ch):
                         await self.addPlayer(ch, au)
                     else:
-                        await self.client.send_message(ch, 'Please wait for the czar to pick an answer before joining.')
+                        await ch.send('Please wait for the czar to pick an answer before joining.')
             
             # playing cards
             if msg.startswith('c!play'):
@@ -795,7 +788,7 @@ class Shard:
                     await self.displayMid(ch)
                 elif msg == c+'!reset':
                     await config.reset(ch)
-                    await self.client.send_message(ch, 'Game reset!')
+                    await ch.send('Game reset!')
     
     async def on_reaction_add(self, reaction, user):
         ch = reaction.message.channel
@@ -816,7 +809,7 @@ class Shard:
                 
                     msg = czar.display_name + ' selected ' + 'ABCDEFGHIJ'[letters.index(reaction.emoji)] + '.\n'
                     msg += config.C[ch]['players'][p].display_name + ' wins the round!'
-                    await self.client.send_message(ch, msg)
+                    await ch.send(msg)
                     
                     if config.C[ch]['win'] in config.C[ch]['score']:
                         await self.displayWinners(ch)
@@ -851,7 +844,7 @@ class Shard:
                             
                                 msg = "**TIME'S UP!**\nThe bot randomly selected " + 'ABCDEFGHIJ'[letter] + '.\n'
                                 msg += config.C[ch]['players'][p].display_name + ' wins the round!'
-                                await self.client.send_message(ch, msg)
+                                await ch.send(msg)
                                 await self.pass_(ch)
                                 
                                 if config.C[ch]['win'] in config.C[ch]['score']:
@@ -865,7 +858,7 @@ class Shard:
                                     config.C.pop(ch)
                         else:
                             try:
-                                await self.client.send_message(ch, "**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
+                                await ch.send("**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
                             
                                 N = config.nCards(ch)
                                 for p in range(len(config.C[ch]['players'])):
