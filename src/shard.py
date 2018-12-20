@@ -458,7 +458,7 @@ class Shard:
         
         # fill in blank cards
         if self.shard == 0:
-            if ch.is_private:
+            if isinstance(ch, discord.abc.PrivateChannel):
                 # check for c!p or c!play
                 if msg.startswith(c+'!p'):
                     await self.client.send_message(au, 'Please play your card(s) in the corresponding channel and not as a private message.')
