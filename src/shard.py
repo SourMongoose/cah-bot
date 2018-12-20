@@ -263,7 +263,7 @@ class Shard:
             pass
     
     async def sendHand(self, ch, i):
-        t = f'Your white cards in #{ch.name} ({ch.server.name}):'
+        t = f'Your white cards in #{ch.name} ({ch.guild.name}):'
         msg = ''
         hasBlank = False
         for card in range(len(config.C[ch]['hands'][i])):
@@ -443,7 +443,7 @@ class Shard:
 
     async def on_message(self, message):
         #if (time.time() / 3600) - last_update > 1:
-        #    await self.client.change_presence(game=discord.Game(name='on '+'_'*4+' servers. ' + str(len(client.servers))+'.'))
+        #    await self.client.change_presence(game=discord.Game(name='on '+'_'*4+' servers. ' + str(len(client.guilds))+'.'))
         #    config.last_update = time.time() / 3600
         
         msg = message.content.lower()
