@@ -1,5 +1,6 @@
 changelog = \
-"""**?/?/18 Update:**
+"""**12/20/18 Update:**
+- Bot now uses auto-sharding
 - Added `c!donate`
 
 **11/22/18 Update:**
