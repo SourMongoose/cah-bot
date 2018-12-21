@@ -324,7 +324,7 @@ class Shard:
                 config.C[ch]['time'] = time.time()
             else:
                 #await config.C[ch]['msg'].edit(embed=em)
-                await config.C[ch]['msg'].edit(msg)
+                await config.C[ch]['msg'].edit(content=msg)
         except Exception as e:
             print('Error in displayMid() at', time.asctime())
             print(e)
@@ -418,7 +418,7 @@ class Shard:
         if not config.C[ch]['playerMenu']: return
         
         s = await self.get_start_msg(ch)
-        await config.C[ch]['msg'].edit(s)
+        await config.C[ch]['msg'].edit(content=s)
     
     async def on_ready(self):
         await self.client.change_presence(game=discord.Game(name='c!help'))
