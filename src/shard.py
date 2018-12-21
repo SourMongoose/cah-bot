@@ -447,15 +447,17 @@ class Shard:
                 await au.send('Please play your card(s) in the corresponding channel and not as a private message.')
                 return
             
-            if au in config.P: # check that user has a blank card
-                for c in config.P[au]: # check all channels that user is in
-                    if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
-                        i = config.C[c]['players'].index(au)
-                        if '' in config.C[c]['hands'][i]: # check that player has a blank
-                            j = config.C[c]['hands'][i].index('')
-                            config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
-                            await self.sendHand(c, i)
-                            break
+            # iterate through all users with blank cards
+            for p in config.P:
+                if p.id == au.id:
+                    for c in config.P[p]:
+                        if config.C[c]['started'] and au in config.C[c]['players']: # check that user is currently playing
+                            i = config.C[c]['players'].index(au)
+                            if '' in config.C[c]['hands'][i]: # check that player has a blank
+                                j = config.C[c]['hands'][i].index('')
+                                config.C[c]['hands'][i][j] = message.content.replace('*','\*').replace('_','\_').replace('~','\~').replace('`','\`')
+                                await self.sendHand(c, i)
+                                break
             return
         
         # ignore irrelevant messages
@@ -472,7 +474,7 @@ class Shard:
                 if config.C[x]['started']:
                     await x.send(message.content[9:])
         # check number of ongoing games
-        if msg == c+'!ongoing' and au.id == 252249185112293376:
+        if msg == c+'!ongoing' and (au.id == 252249185112293376 or au.id == 413516816137322506):
             nC = 0
             for x in config.C:
                 if config.C[x]['started']:
@@ -482,8 +484,15 @@ class Shard:
         if (msg == c+'!save' or msg == c+'!savestate') and au.id == 252249185112293376:
             self.save_state()
         # number of servers
-        if msg == c+'!servers' and au.id == 252249185112293376:
+        if msg == c+'!servers' and (au.id == 252249185112293376 or au.id == 413516816137322506):
             await ch.send(str(len(self.client.guilds)))
+#         # eval
+#         if message.content.startswith(c+'!eval') and au.id == 252249185112293376:
+#             try:
+#                 print(eval(message.content[6:].strip()))
+#                 await ch.send(str(eval(message.content[6:].strip())))
+#             except:
+#                 pass
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
