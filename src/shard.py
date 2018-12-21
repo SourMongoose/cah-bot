@@ -481,6 +481,9 @@ class Shard:
         # save state
         if (msg == c+'!save' or msg == c+'!savestate') and au.id == 252249185112293376:
             self.save_state()
+        # number of servers
+        if msg == c+'!servers' and au.id == 252249185112293376:
+            await ch.send(str(len(self.client.guilds)))
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
