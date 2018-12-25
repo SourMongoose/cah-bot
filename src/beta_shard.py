@@ -6,8 +6,8 @@ import pickle
 
 from cardcast import api
 
-import beta_config as config
-import beta_info as info
+import config
+import info
 import tokens
 
 class Shard:
