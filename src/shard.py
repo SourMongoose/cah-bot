@@ -3,7 +3,6 @@ import asyncio
 import random
 import time
 import pickle
-import aiosqlite
 
 from cardcast import api
 
@@ -582,13 +581,13 @@ class Shard:
                     "(pack code followed by name of pack, then number of black and white cards)\n"
                     "----------\n")
                 for p in config.packs:
-                    output += '**'+p+'** - ' + config.packs[p] \
-                        + ' (' + str(len(eval('config.black_'+p))) + '/' + str(len(eval('config.white_'+p))) + ')\n'
+                    cnt = config.getCount(p)
+                    output += f'**{p}** - {config.packs[p]} ({cnt[0]}/{cnt[1]})\n'
                 await ch.send(output)
                 output = '\nThird party packs:\n'
                 for p in config.thirdparty:
-                    output += '**'+p+'** - ' + config.thirdparty[p] \
-                        + ' (' + str(len(eval('config.black_'+p))) + '/' + str(len(eval('config.white_'+p))) + ')\n'
+                    cnt = config.getCount(p)
+                    output += f'**{p}** - {config.thirdparty[p]} ({cnt[0]}/{cnt[1]})\n'
                 output += ("\nUse `{0}!add <code>` to add a pack, or use `{0}!add all` to add all available packs.\n"
                     "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"
                     "Use `{0}!contents <code>` to see what cards are in a specific pack.").format(c)
@@ -630,15 +629,17 @@ class Shard:
                     elif pk in config.thirdparty:
                         output = '**Cards in ' + config.thirdparty[pk] + ':**\n\n'
                     
-                    output += '**Black cards:** (' + str(len(eval('config.black_'+pk))) + ')\n'
-                    for c in eval('config.black_'+pk):
-                        output += '- ' + c + '\n'
+                    cnt = await config.getCount(pk)
+                    cards = await config.getPack(pk)
+                    output += f'**Black cards:** ({cnt[0]})\n'
+                    for c in cards[0]:
+                        output += '- ' + c[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
-                    output += '\n**White cards:** (' + str(len(eval('config.white_'+pk))) + ')\n'
-                    for c in eval('config.white_'+pk):
-                        output += '- ' + c + '\n'
+                    output += f'\n**White cards:** ({cnt[1]})\n'
+                    for c in cards[1]:
+                        output += '- ' + c[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''

@@ -10037,6 +10037,7 @@ conn = sqlite3.connect('packs.db')
 c = conn.cursor()
 
 c.execute('drop table if exists cards')
+c.execute('drop table if exists pack_count')
 
 c.execute('create table cards (pack text, card text, black integer)')
 for x in black:
@@ -10061,6 +10062,13 @@ for l in languages:
         c.execute('insert into cards values (?, ?, ?)', (p, x, 1))
     for x in eval('white_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 0))
+
+c.execute('create table pack_count (pack text, black integer, white integer)')
+
+for p in packs:
+    c.execute('insert into pack_count values (?, ?, ?)', (p, len(eval('black_'+p)), len(eval('white_'+p))))
+for p in thirdparty:
+    c.execute('insert into pack_count values (?, ?, ?)', (p, len(eval('black_'+p)), len(eval('white_'+p))))
  
 conn.commit()
 conn.close()

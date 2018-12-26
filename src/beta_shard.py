@@ -53,6 +53,9 @@ class Shard:
             config.C[ch]['score'].append(0)
             config.C[ch]['kick'].append('')
         
+        # create deck
+        await config.getCards(ch)
+        
         # add blanks
         for _ in range(config.C[ch]['blanks']):
             config.C[ch]['white'].append('')
@@ -84,9 +87,7 @@ class Shard:
         # CardCast
         try:
             if s not in config.C[ch]['packs']:
-                b, w = api.get_deck_blacks_json(s), api.get_deck_whites_json(s)
-                config.C[ch]['black'] += ['_'.join(c['text']) for c in b]
-                config.C[ch]['white'] += [''.join(c['text']) for c in w]
+                _, _ = api.get_deck_blacks_json(s), api.get_deck_whites_json(s)
                 
                 config.C[ch]['packs'].append(s)
                 
@@ -122,11 +123,7 @@ class Shard:
             if p in s:
                 total += 1
                 if p not in config.C[ch]['packs']:
-                    config.C[ch]['black'] += list(eval('config.black_'+p))
-                    config.C[ch]['white'] += list(eval('config.white_'+p))
-                    
                     config.C[ch]['packs'].append(p)
-                    
                     success += 1
                 else:
                     added += 1
@@ -134,11 +131,7 @@ class Shard:
             if p in s:
                 total += 1
                 if p not in config.C[ch]['packs']:
-                    config.C[ch]['black'] += list(eval('config.black_'+p))
-                    config.C[ch]['white'] += list(eval('config.white_'+p))
-                    
                     config.C[ch]['packs'].append(p)
-                    
                     success += 1
                 else:
                     added += 1
@@ -155,31 +148,19 @@ class Shard:
         s = s.strip()
         
         # CardCast
-        try:
-            if s in config.C[ch]['packs']:
-                b, w = api.get_deck_blacks_json(s), api.get_deck_whites_json(s)
-                config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in ['_'.join(c['text']) for c in b]]
-                config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in [''.join(c['text']) for c in w]]
-                
-                config.C[ch]['packs'].remove(s)
-                await ch.send(s + ' removed!')
-        except:
-            pass
+        if s in config.C[ch]['packs']:
+            config.C[ch]['packs'].remove(s)
+            await ch.send(s + ' removed!')
+            return
         
         s = s.lower()
         
         for p in config.packs:
             if p in s and p in config.C[ch]['packs']:
-                config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in eval('config.black_'+p)]
-                config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in eval('config.white_'+p)]
-                
                 config.C[ch]['packs'].remove(p)
                 await ch.send(config.packs[p] + ' removed!')
         for p in config.thirdparty:
             if p in s and p in config.C[ch]['packs']:
-                config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in eval('config.black_'+p)]
-                config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in eval('config.white_'+p)]
-                
                 config.C[ch]['packs'].remove(p)
                 await ch.send(config.thirdparty[p] + ' removed!')
         
@@ -189,20 +170,11 @@ class Shard:
         
         # remove base pack
         if 'base' in s and 'base' in config.C[ch]['packs']:
-            config.C[ch]['black'] = [x for x in config.C[ch]['black'] if x not in config.black]
-            config.C[ch]['white'] = [x for x in config.C[ch]['white'] if x not in config.white]
             config.C[ch]['packs'].remove('base')
             await ch.send('Base Cards Against Humanity removed!')
         
         # remove all packs
-        if len(config.C[ch]['black']) * len(config.C[ch]['white']) == 0 or s == 'all':
-            if config.C[ch]['lang'] == 'English':
-                config.C[ch]['black'] = list(config.black)
-                config.C[ch]['white'] = list(config.white)
-            else:
-                config.C[ch]['black'] = list(eval('config.black_'+config.languages[config.C[ch]['lang']]))
-                config.C[ch]['white'] = list(eval('config.white_'+config.languages[config.C[ch]['lang']]))
-            
+        if len(config.C[ch]['packs']) == 0 or s == 'all':
             config.C[ch]['packs'] = ['base']
             await ch.send('No cards left. Reverting to base pack')
         
@@ -486,13 +458,13 @@ class Shard:
         # number of servers
         if msg == c+'!servers' and (au.id == 252249185112293376 or au.id == 413516816137322506):
             await ch.send(str(len(self.client.guilds)))
-#         # eval
-#         if message.content.startswith(c+'!eval') and au.id == 252249185112293376:
-#             try:
-#                 print(eval(message.content[6:].strip()))
-#                 await ch.send(str(eval(message.content[6:].strip())))
-#             except:
-#                 pass
+        # eval
+        if message.content.startswith(c+'!eval') and au.id == 252249185112293376:
+            try:
+                print(eval(message.content[6:].strip()))
+                await ch.send(str(eval(message.content[6:].strip())))
+            except:
+                pass
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
@@ -536,8 +508,6 @@ class Shard:
                 if msg == c+'!language '+l.lower():
                     if config.C[ch]['lang'] != l:
                         config.C[ch]['lang'] = l
-                        config.C[ch]['black'] = list(eval('config.black_'+config.languages[l]))
-                        config.C[ch]['white'] = list(eval('config.white_'+config.languages[l]))
                         await ch.send('Language changed to ' + l + '.')
                         await self.edit_start_msg(ch)
             
@@ -549,8 +519,6 @@ class Shard:
             elif msg == c+'!language english':
                 if config.C[ch]['lang'] != 'English':
                     config.C[ch]['lang'] = 'English'
-                    config.C[ch]['black'] = config.black
-                    config.C[ch]['white'] = config.white
                     await ch.send('Language changed to English.')
                     await self.edit_start_msg(ch)
             elif msg == c+'!start':
@@ -613,13 +581,13 @@ class Shard:
                     "(pack code followed by name of pack, then number of black and white cards)\n"
                     "----------\n")
                 for p in config.packs:
-                    output += '**'+p+'** - ' + config.packs[p] \
-                        + ' (' + str(len(eval('config.black_'+p))) + '/' + str(len(eval('config.white_'+p))) + ')\n'
+                    cnt = await config.getCount(p)
+                    output += f'**{p}** - {config.packs[p]} ({cnt[0]}/{cnt[1]})\n'
                 await ch.send(output)
                 output = '\nThird party packs:\n'
                 for p in config.thirdparty:
-                    output += '**'+p+'** - ' + config.thirdparty[p] \
-                        + ' (' + str(len(eval('config.black_'+p))) + '/' + str(len(eval('config.white_'+p))) + ')\n'
+                    cnt = await config.getCount(p)
+                    output += f'**{p}** - {config.thirdparty[p]} ({cnt[0]}/{cnt[1]})\n'
                 output += ("\nUse `{0}!add <code>` to add a pack, or use `{0}!add all` to add all available packs.\n"
                     "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"
                     "Use `{0}!contents <code>` to see what cards are in a specific pack.").format(c)
@@ -661,15 +629,17 @@ class Shard:
                     elif pk in config.thirdparty:
                         output = '**Cards in ' + config.thirdparty[pk] + ':**\n\n'
                     
-                    output += '**Black cards:** (' + str(len(eval('config.black_'+pk))) + ')\n'
-                    for c in eval('config.black_'+pk):
-                        output += '- ' + c + '\n'
+                    cnt = await config.getCount(pk)
+                    cards = await config.getPack(pk)
+                    output += f'**Black cards:** ({cnt[0]})\n'
+                    for c in cards[0]:
+                        output += '- ' + c[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
-                    output += '\n**White cards:** (' + str(len(eval('config.white_'+pk))) + ')\n'
-                    for c in eval('config.white_'+pk):
-                        output += '- ' + c + '\n'
+                    output += f'\n**White cards:** ({cnt[1]})\n'
+                    for c in cards[1]:
+                        output += '- ' + c[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
