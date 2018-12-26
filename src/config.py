@@ -1,7 +1,13 @@
 import random
+import aiosqlite
 from cardcast import api
 
-last_update = 0
+languages = {
+    "Portuguese": "pt",
+    "Spanish": "sp",
+    "German": "de",
+    "French": "fr"
+}
 
 C = {} # channel dict
 P = {} # list of players with blank cards
@@ -38,8 +44,6 @@ async def initChannel(ch):
     C[ch]["nPlayers"] = None
     
     C[ch]["packs"] = ["base"]
-    C[ch]["black"] = list(black)
-    C[ch]["white"] = list(white)
     
     C[ch]["lang"] = "English"
     
@@ -54,6 +58,33 @@ async def shuffle(ch):
     
     random.shuffle(C[ch]["black"])
     random.shuffle(C[ch]["white"])
+
+async def getCards(ch):
+    C[ch]["black"] = []
+    C[ch]["white"] = []
+    
+    async with aiosqlite.connect('packs.db') as db:
+        async def getPack(pack):
+            async with db.execute('select card from cards where pack=? and black=1', (pack,)) as cursor:
+                b = await cursor.fetchall()
+            async with db.execute('select card from cards where pack=? and black=0', (pack,)) as cursor:
+                w = await cursor.fetchall()
+            return b, w
+        
+        for p in C[ch]["packs"]:
+            if p == "base":
+                cards = await getPack('base') if C[ch]['lang'] == 'English' else await getPack(languages[C[ch]['lang']])
+                C[ch]["black"] += cards[0]
+                C[ch]["white"] += cards[1]
+            else:
+                try:
+                    cards = await getPack(p)
+                    C[ch]["black"] += cards[0]
+                    C[ch]["white"] += cards[1]
+                except:
+                    b, w = api.get_deck_blacks_json(p), api.get_deck_whites_json(p)
+                    C[ch]["black"] += ['_'.join(c["text"]) for c in b]
+                    C[ch]["white"] += [''.join(c["text"]) for c in w]
 
 async def nextBlack(ch):
     global C
@@ -76,20 +107,8 @@ async def reset(ch):
     
     C[ch]["nPlayers"] = 0
     
-    C[ch]["black"] = []
-    C[ch]["white"] = []
-    for p in C[ch]["packs"]:
-        if p == "base":
-            C[ch]["black"] += list(black) if C[ch]["lang"] == "English" else list(eval("black_"+languages[C[ch]["lang"]]))
-            C[ch]["white"] += list(white) if C[ch]["lang"] == "English" else list(eval("white_"+languages[C[ch]["lang"]]))
-        else:
-            try:
-                C[ch]["black"] += list(eval("black_"+p))
-                C[ch]["white"] += list(eval("white_"+p))
-            except:
-                b, w = api.get_deck_blacks_json(p), api.get_deck_whites_json(p)
-                C[ch]["black"] += ['_'.join(c["text"]) for c in b]
-                C[ch]["white"] += [''.join(c["text"]) for c in w]
+    C[ch].pop("black", None)
+    C[ch].pop("white", None)
     
     C[ch]["pov"] = 0
     C[ch]["hands"] = []

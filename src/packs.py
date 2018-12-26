@@ -10033,7 +10033,7 @@ def temp():
     
 temp()
 
-conn = sqlite3.connect('src/packs.db')
+conn = sqlite3.connect('packs.db')
 c = conn.cursor()
 
 c.execute('drop table if exists cards')
