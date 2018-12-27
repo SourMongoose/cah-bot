@@ -60,6 +60,12 @@ class Shard:
         for _ in range(config.C[ch]['blanks']):
             config.C[ch]['white'].append('')
         
+        # check that there are enough cards
+        if not (config.C[ch]['white'] and config.C[ch]['black']):
+            await ch.send('Error starting game. Make sure there are enough black and white cards, then try again.')
+            await config.reset(ch)
+            return
+        
         await config.shuffle(ch)
         config.C[ch]['curr'] = await config.nextBlack(ch)
         await self.deal(ch)
@@ -581,12 +587,12 @@ class Shard:
                     "(pack code followed by name of pack, then number of black and white cards)\n"
                     "----------\n")
                 for p in config.packs:
-                    cnt = config.getCount(p)
+                    cnt = await config.getCount(p)
                     output += f'**{p}** - {config.packs[p]} ({cnt[0]}/{cnt[1]})\n'
                 await ch.send(output)
                 output = '\nThird party packs:\n'
                 for p in config.thirdparty:
-                    cnt = config.getCount(p)
+                    cnt = await config.getCount(p)
                     output += f'**{p}** - {config.thirdparty[p]} ({cnt[0]}/{cnt[1]})\n'
                 output += ("\nUse `{0}!add <code>` to add a pack, or use `{0}!add all` to add all available packs.\n"
                     "(Note: this will only add official CAH packs; use `{0}!add thirdparty` to add all third party packs.)\n"

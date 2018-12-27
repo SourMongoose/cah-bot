@@ -165,9 +165,11 @@ async def getCount(pack):
 async def nextBlack(ch):
     global C
     
-    card = C[ch]["black"].pop(0)
-    if C[ch]["curr"] != '':
-        C[ch]["black"].append(C[ch]["curr"])
+    # make sure there are cards left
+    if not C[ch]['black']:
+        await getCards(ch)
+    
+    card = C[ch]["black"].pop()
     return card
 
 async def reset(ch):
