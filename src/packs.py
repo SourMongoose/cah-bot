@@ -60,8 +60,10 @@ thirdparty = {
     "crows": "Crows Adopt Vulgarity",
     "guards": "Guards Against Insanity",
     "hombre": "Bad Hombres Against Fake News",
-    "punish": "Cards and Punishment"
+    "punish": "Cards and Punishment",
+    "z": "Z" # here to prevent db duplicates
 }
+black_z = white_z = []
 
 languages = {
     "Portuguese": "pt",
@@ -10044,19 +10046,19 @@ for x in black:
     c.execute('insert into cards values (?, ?, ?)', ('base', x, 1))
 for x in white:
     c.execute('insert into cards values (?, ?, ?)', ('base', x, 0))
- 
+
 for p in packs:
     for x in eval('black_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 1))
     for x in eval('white_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 0))
- 
+
 for p in thirdparty:
     for x in eval('black_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 1))
     for x in eval('white_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 0))
- 
+
 for l in languages:
     for x in eval('black_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 1))
@@ -10069,6 +10071,6 @@ for p in packs:
     c.execute('insert into pack_count values (?, ?, ?)', (p, len(eval('black_'+p)), len(eval('white_'+p))))
 for p in thirdparty:
     c.execute('insert into pack_count values (?, ?, ?)', (p, len(eval('black_'+p)), len(eval('white_'+p))))
- 
+
 conn.commit()
 conn.close()
