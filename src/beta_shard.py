@@ -60,6 +60,12 @@ class Shard:
         for _ in range(config.C[ch]['blanks']):
             config.C[ch]['white'].append('')
         
+        # check that there are enough cards
+        if not (config.C[ch]['white'] and config.C[ch]['black']):
+            await ch.send('Error starting game. Make sure there are enough black and white cards, then try again.')
+            await config.reset(ch)
+            return
+        
         await config.shuffle(ch)
         config.C[ch]['curr'] = await config.nextBlack(ch)
         await self.deal(ch)
@@ -148,9 +154,10 @@ class Shard:
         s = s.strip()
         
         # CardCast
-        if s in config.C[ch]['packs']:
+        if s in config.C[ch]['packs'] and s not in config.packs and s not in config.thirdparty and s != 'base':
             config.C[ch]['packs'].remove(s)
             await ch.send(s + ' removed!')
+            await self.edit_start_msg(ch)
             return
         
         s = s.lower()
@@ -632,14 +639,14 @@ class Shard:
                     cnt = await config.getCount(pk)
                     cards = await config.getPack(pk)
                     output += f'**Black cards:** ({cnt[0]})\n'
-                    for c in cards[0]:
-                        output += '- ' + c[0] + '\n'
+                    for card in cards[0]:
+                        output += '- ' + card[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
                     output += f'\n**White cards:** ({cnt[1]})\n'
-                    for c in cards[1]:
-                        output += '- ' + c[0] + '\n'
+                    for card in cards[1]:
+                        output += '- ' + card[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''

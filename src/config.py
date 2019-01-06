@@ -147,15 +147,14 @@ async def getCards(ch):
                 cards = await getPack('base') if C[ch]['lang'] == 'English' else await getPack(languages[C[ch]['lang']])
                 C[ch]["black"] += [x[0] for x in cards[0]]
                 C[ch]["white"] += [x[0] for x in cards[1]]
+            elif p in packs or p in thirdparty:
+                cards = await getPack(p)
+                C[ch]["black"] += [x[0] for x in cards[0]]
+                C[ch]["white"] += [x[0] for x in cards[1]]
             else:
-                try:
-                    cards = await getPack(p)
-                    C[ch]["black"] += [x[0] for x in cards[0]]
-                    C[ch]["white"] += [x[0] for x in cards[1]]
-                except:
-                    b, w = api.get_deck_blacks_json(p), api.get_deck_whites_json(p)
-                    C[ch]["black"] += ['_'.join(c["text"]) for c in b]
-                    C[ch]["white"] += [''.join(c["text"]) for c in w]
+                b, w = api.get_deck_blacks_json(p), api.get_deck_whites_json(p)
+                C[ch]["black"] += ['_'.join(c["text"]) for c in b]
+                C[ch]["white"] += [''.join(c["text"]) for c in w]
 
 async def getCount(pack):
     async with aiosqlite.connect('packs.db') as db:
@@ -198,6 +197,7 @@ def nCards(ch):
     if (C[ch]["curr"].count('_') == 2
         or "duo" in C[ch]["curr"]
         or "phrases" in C[ch]["curr"]
+        or "two cards" in C[ch]["curr"]
         or "(2)" in C[ch]["curr"]):
         return 2
     elif (C[ch]["curr"].count('_') == 3

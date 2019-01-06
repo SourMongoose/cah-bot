@@ -154,9 +154,10 @@ class Shard:
         s = s.strip()
         
         # CardCast
-        if s in config.C[ch]['packs']:
+        if s in config.C[ch]['packs'] and s not in config.packs and s not in config.thirdparty and s != 'base':
             config.C[ch]['packs'].remove(s)
             await ch.send(s + ' removed!')
+            await self.edit_start_msg(ch)
             return
         
         s = s.lower()
@@ -638,14 +639,14 @@ class Shard:
                     cnt = await config.getCount(pk)
                     cards = await config.getPack(pk)
                     output += f'**Black cards:** ({cnt[0]})\n'
-                    for c in cards[0]:
-                        output += '- ' + c[0] + '\n'
+                    for card in cards[0]:
+                        output += '- ' + card[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
                     output += f'\n**White cards:** ({cnt[1]})\n'
-                    for c in cards[1]:
-                        output += '- ' + c[0] + '\n'
+                    for card in cards[1]:
+                        output += '- ' + card[0] + '\n'
                         if len(output) > 1500:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
