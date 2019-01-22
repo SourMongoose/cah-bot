@@ -60,10 +60,8 @@ thirdparty = {
     "crows": "Crows Adopt Vulgarity",
     "guards": "Guards Against Insanity",
     "hombre": "Bad Hombres Against Fake News",
-    "punish": "Cards and Punishment",
-    "z": "Z" # here to prevent db duplicates
+    "punish": "Cards and Punishment"
 }
-black_z = white_z = []
 
 languages = {
     "Portuguese": "pt",
@@ -10060,6 +10058,7 @@ for p in thirdparty:
         c.execute('insert into cards values (?, ?, ?)', (p, x, 0))
 
 for l in languages:
+    p = languages[l]
     for x in eval('black_'+p):
         c.execute('insert into cards values (?, ?, ?)', (p, x, 1))
     for x in eval('white_'+p):

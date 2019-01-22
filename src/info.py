@@ -1,5 +1,8 @@
 changelog = \
-"""**12/20/18 Update:**
+"""**1/5/19 Update:**
+- Fixed bug with CardCast packs
+
+**12/20/18 Update:**
 - Bot now uses auto-sharding
 - Added `c!donate`
 
