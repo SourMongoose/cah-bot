@@ -45,6 +45,7 @@ class Shard:
     async def start_(self, ch):
         """Begin a game."""
         
+        config.C[ch]['time'] = 1e15 # prevent weird timer_check bugs
         config.C[ch]['started'] = True
         
         for _ in range(config.C[ch]['nPlayers']):
@@ -791,6 +792,9 @@ class Shard:
             for ch in channels:
                 if config.C[ch]['started'] and 'time' in config.C[ch]:
                     if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
+                        # reset timer
+                        config.C[ch]['time'] = time.time()
+                        
                         if config.done(ch):
                             try:
                                 # pick random letter

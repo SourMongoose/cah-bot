@@ -1,5 +1,8 @@
 changelog = \
-"""**1/5/19 Update:**
+"""**2/11/19 Update:**
+- Fixed bug where timer would go off prematurely
+
+**1/5/19 Update:**
 - Fixed bug with CardCast packs
 
 **12/20/18 Update:**
