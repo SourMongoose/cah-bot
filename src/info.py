@@ -1,5 +1,9 @@
 changelog = \
-"""**2/11/19 Update:**
+"""**3/6/19 Update:**
+- `c!cancel` is now deprecated for `c!reset`
+- Added admin mode
+
+**2/11/19 Update:**
 - Fixed bug where timer would go off prematurely
 
 **1/5/19 Update:**
@@ -123,7 +127,7 @@ Global commands:
 
 Pre-game commands:
 • c!start - Start a game of Cards Against Humanity
-• c!cancel - Cancel a game of CAH
+• c!reset - Cancel a game of CAH (will not reset settings)
 • c!add <pack(s)> - Add a pack (use "c!add all" to add all available packs)
 • c!remove/c!rm <pack(s)> - Remove a pack (use 'base' for original pack)
 • c!packs - Show a list of all available packs

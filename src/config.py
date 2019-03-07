@@ -115,6 +115,8 @@ async def initChannel(ch):
     C[ch]["curr"] = ''
     C[ch]["mid"] = []
     C[ch]["msg"] = None
+    
+    C[ch]["admin"] = False
 
 async def shuffle(ch):
     global C

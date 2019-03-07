@@ -398,7 +398,7 @@ class Shard:
         if not config.C[ch]['playerMenu']: return
         
         s = await self.get_start_msg(ch)
-        await config.C[ch]['msg'].edit(content=s)
+        if config.C[ch]['msg']: await config.C[ch]['msg'].edit(content=s)
     
     async def on_ready(self):
         await self.client.change_presence(game=discord.Game(name='c!help'))
@@ -511,17 +511,26 @@ class Shard:
                 f.write(str(ch.id) + ' ' + msg[9] + '\n')
         
         if not config.C[ch]['started']:
+            if config.C[ch]['admin']:
+                # Disable pre-game commands for users without Manage Channel permissions
+                if not au.permissions_in(ch).manage_channels:
+                    return
+            # admin mode
+            if msg == c+'!admin':
+                await ch.send('Admin mode ' + ('disabled.' if config.C[ch]['admin'] else 'enabled.'))
+                config.C[ch]['admin'] = not config.C[ch]['admin']
+            
             # language change
             for l in config.languages:
                 if msg == c+'!language '+l.lower():
                     if config.C[ch]['lang'] != l:
                         config.C[ch]['lang'] = l
-                        await ch.send('Language changed to ' + l + '.')
+                        await ch.send('Language changed to ' + l + '.\n(Note: Only the base pack will be translated.)')
                         await self.edit_start_msg(ch)
             
             if msg == c+'!help':
                 await ch.send((
-                    "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!cancel` to cancel an existing one.\n"
+                    "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!reset` to cancel an existing one.\n"
                     "Use `{0}!commands` to bring up a list of available commands.\n"
                     "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
             elif msg == c+'!language english':
@@ -652,7 +661,7 @@ class Shard:
                             await ch.send(output.replace('_','\_'*3))
                             output = ''
                     await ch.send(output.replace('_','\_'*3))
-            elif msg == c+'!cancel':
+            elif msg == c+'!reset' or msg == c+'!cancel':
                 if config.C[ch]['playerMenu']:
                     config.C[ch]['playerMenu'] = False
                     config.C[ch]['players'] = []
@@ -670,11 +679,11 @@ class Shard:
                     output = str(len(config.C[ch]['players'])) + '/20 Players: '
                     output += ', '.join(usr.display_name for usr in config.C[ch]['players'])
                     await ch.send(output)
-                if len(msg) > 6 and msg[:6] == c+'!add ' and config.C[ch]['lang'] == 'English':
+                if len(msg) > 6 and msg[:6] == c+'!add ':
                     await self.addPack(ch, message.content[6:])
-                if len(msg) > 9 and msg[:9] == c+'!remove ' and config.C[ch]['lang'] == 'English':
+                if len(msg) > 9 and msg[:9] == c+'!remove ':
                     await self.removePack(ch, message.content[9:])
-                elif len(msg) > 5 and msg[:5] == c+'!rm ' and config.C[ch]['lang'] == 'English':
+                elif len(msg) > 5 and msg[:5] == c+'!rm ':
                     await self.removePack(ch, message.content[5:])
         else:
             if msg == c+'!help':
@@ -685,7 +694,10 @@ class Shard:
                     "To reset an ongoing game, use `{0}!reset`.\n"
                     "To leave an ongoing game, use `{0}!leave` or `{0}!quit`.\n"
                     "To join an ongoing game, use `{0}!join`.\n"
-                    "To kick an AFK player, use `{0}!kick <player>`.").format(c))
+                    "To kick an AFK player, use `{0}!kick <player>`.\n"
+                    "To refresh the scoreboard, use `c!display`.\n\n"
+                    "Use `{0}!commands` to bring up a list of available commands.\n"
+                    "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
             
             # player commands
             if au in config.C[ch]['players']:
@@ -744,7 +756,7 @@ class Shard:
                     pass
             
             # admin override
-            if au.id == 252249185112293376 or au.permissions_in(ch).administrator:
+            if au.id == 252249185112293376 or au.permissions_in(ch).manage_channels:
                 if msg == c+'!display':
                     config.C[ch]['msg'] = None
                     await self.displayMid(ch)
@@ -786,8 +798,6 @@ class Shard:
         await self.client.wait_until_ready()
         
         while not self.client.is_closed():
-            start_time = time.time()
-            
             channels = list(config.C.keys())
             for ch in channels:
                 if config.C[ch]['started'] and 'time' in config.C[ch]:
@@ -841,11 +851,6 @@ class Shard:
                                 # unknown channel/missing access
                                 if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
                                     config.C.pop(ch)
-            
-            # debug
-            elapsed_time = time.time() - start_time
-            #if elapsed_time > 2: print('timer_check: {0}'.format(time.time() - start_time))
-            #print('number of channels: {0}'.format(len(channels)))
             
             await asyncio.sleep(2)
     
