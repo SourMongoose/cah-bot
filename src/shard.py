@@ -513,7 +513,7 @@ class Shard:
         if not config.C[ch]['started']:
             if config.C[ch]['admin']:
                 # Disable pre-game commands for users without Manage Channel permissions
-                if not au.permissions_in(ch).manage_channels:
+                if not au.permissions_in(ch).manage_channels and msg != c+'!join' and msg != c+'!leave':
                     return
             # admin mode
             if msg == c+'!admin':
