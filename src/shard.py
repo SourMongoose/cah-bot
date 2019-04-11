@@ -685,6 +685,9 @@ class Shard:
                     await self.removePack(ch, message.content[9:])
                 elif len(msg) > 5 and msg[:5] == c+'!rm ':
                     await self.removePack(ch, message.content[5:])
+            else:
+                if msg == c+'!join' or (len(msg) > 6 and msg[:6] == c+'!add '):
+                    await ch.send('Use `c!start` to start a game before joining or adding packs.')
         else:
             if msg == c+'!help':
                 await ch.send((

@@ -1,5 +1,8 @@
 changelog = \
-"""**3/6/19 Update:**
+"""**4/11/19 Update:**
+- Added warning message when using `c!add` before starting a game
+
+**3/6/19 Update:**
 - `c!cancel` is now deprecated for `c!reset`
 - Added admin mode
 

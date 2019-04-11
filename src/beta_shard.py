@@ -45,6 +45,7 @@ class Shard:
     async def start_(self, ch):
         """Begin a game."""
         
+        config.C[ch]['time'] = 1e15 # prevent weird timer_check bugs
         config.C[ch]['started'] = True
         
         for _ in range(config.C[ch]['nPlayers']):
@@ -275,7 +276,8 @@ class Shard:
         # don't display if not enough players
         if config.C[ch]['nPlayers'] < 2: return
         
-        msg = '─'*20 + '\n'
+        #msg = '─'*20 + '\n'
+        msg = ''
         for i in range(config.C[ch]['nPlayers']):
             msg += config.C[ch]['players'][i].display_name + ' - ' + str(config.C[ch]['score'][i])
             if config.C[ch]['played'][i] and not config.done(ch): msg += ' **Played!**'
@@ -284,7 +286,7 @@ class Shard:
         
         if config.C[ch]['win'] not in config.C[ch]['score']:
             msg += '\nCurrent Czar: ' + config.C[ch]['players'][config.C[ch]['pov']].mention + '\n\n'
-            msg += 'Black card:\n' + config.C[ch]['curr'].replace('_','\_'*5) + '\n'
+            msg += '**Black card:**\n' + config.C[ch]['curr'].replace('_','\_'*5) + '\n'
         
         if config.done(ch):
             msg += '\n'
@@ -292,18 +294,20 @@ class Shard:
                 msg += '**' + 'ABCDEFGHIJKL'[m] + ')** '
                 for card in config.C[ch]['mid'][m][0]:
                     msg += card + '\n'
-        
-        msg += '─'*20
+            msg += '\u200b'
         
         try:
-            #em = discord.Embed(description=msg, colour=0xBBBBBB)
+            em = discord.Embed(description=msg, colour=0xBBBBBB)
+            if config.done(ch):
+                em.set_footer(text='Use the reactions below to vote!')
+            
             if config.C[ch]['msg'] == None or config.done(ch):
-                #config.C[ch]['msg'] = await ch.send(embed=em)
-                config.C[ch]['msg'] = await ch.send(msg)
+                config.C[ch]['msg'] = await ch.send(embed=em)
+                #config.C[ch]['msg'] = await ch.send(msg)
                 config.C[ch]['time'] = time.time()
             else:
-                #await config.C[ch]['msg'].edit(embed=em)
-                await config.C[ch]['msg'].edit(content=msg)
+                await config.C[ch]['msg'].edit(embed=em)
+                #await config.C[ch]['msg'].edit(content=msg)
         except Exception as e:
             print('Error in displayMid() at', time.asctime())
             print(e)
@@ -397,7 +401,7 @@ class Shard:
         if not config.C[ch]['playerMenu']: return
         
         s = await self.get_start_msg(ch)
-        await config.C[ch]['msg'].edit(content=s)
+        if config.C[ch]['msg']: await config.C[ch]['msg'].edit(content=s)
     
     async def on_ready(self):
         await self.client.change_presence(game=discord.Game(name='c!help'))
@@ -465,13 +469,13 @@ class Shard:
         # number of servers
         if msg == c+'!servers' and (au.id == 252249185112293376 or au.id == 413516816137322506):
             await ch.send(str(len(self.client.guilds)))
-        # eval
-        if message.content.startswith(c+'!eval') and au.id == 252249185112293376:
-            try:
-                print(eval(message.content[6:].strip()))
-                await ch.send(str(eval(message.content[6:].strip())))
-            except:
-                pass
+#         # eval
+#         if message.content.startswith(c+'!eval') and au.id == 252249185112293376:
+#             try:
+#                 print(eval(message.content[6:].strip()))
+#                 await ch.send(str(eval(message.content[6:].strip())))
+#             except:
+#                 pass
         
         # changelog
         if msg == c+'!whatsnew' or msg == c+'!update' or msg == c+'!updates':
@@ -675,6 +679,9 @@ class Shard:
                     await self.removePack(ch, message.content[9:])
                 elif len(msg) > 5 and msg[:5] == c+'!rm ' and config.C[ch]['lang'] == 'English':
                     await self.removePack(ch, message.content[5:])
+            else:
+                if msg == c+'!join' or (len(msg) > 6 and msg[:6] == c+'!add '):
+                    await ch.send('Use `c!start` to start a game before joining or adding packs.')
         else:
             if msg == c+'!help':
                 await ch.send((
@@ -684,7 +691,8 @@ class Shard:
                     "To reset an ongoing game, use `{0}!reset`.\n"
                     "To leave an ongoing game, use `{0}!leave` or `{0}!quit`.\n"
                     "To join an ongoing game, use `{0}!join`.\n"
-                    "To kick an AFK player, use `{0}!kick <player>`.").format(c))
+                    "To kick an AFK player, use `{0}!kick <player>`.\n"
+                    "To re-display the scoreboard, use `{0}!display`.").format(c))
             
             # player commands
             if au in config.C[ch]['players']:
@@ -791,6 +799,9 @@ class Shard:
             for ch in channels:
                 if config.C[ch]['started'] and 'time' in config.C[ch]:
                     if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
+                        # reset timer
+                        config.C[ch]['time'] = time.time()
+                        
                         if config.done(ch):
                             try:
                                 # pick random letter
