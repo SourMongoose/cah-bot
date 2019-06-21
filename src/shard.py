@@ -204,7 +204,7 @@ class Shard:
         try:
             newMid = []
             for x in s:
-                card = config.C[ch]['hands'][player]['abcdefghijkl'.index(x)]
+                card = config.C[ch]['hands'][player]['abcdefghijklmnopqrstuvwxyz'.index(x)]
                 if card in newMid:
                     return
                 # check for blank
@@ -247,7 +247,7 @@ class Shard:
             if s == '':
                 s = '<blank card>'
                 hasBlank = True
-            msg += '**' + 'ABCDEFGHIJKL'[card] + ')** ' + s + '\n'
+            msg += '**' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[card] + ')** ' + s + '\n'
         
         if config.C[ch]['pov'] == i:
             msg += '\n**You are the Czar this round; you do NOT need to play any cards.**'
@@ -290,7 +290,7 @@ class Shard:
         if config.done(ch):
             msg += '\n'
             for m in range(len(config.C[ch]['mid'])):
-                msg += '**' + 'ABCDEFGHIJKL'[m] + ')** '
+                msg += '**' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[m] + ')** '
                 for card in config.C[ch]['mid'][m][0]:
                     msg += card + '\n'
         
@@ -775,7 +775,9 @@ class Shard:
         
         czar = config.C[ch]['players'][config.C[ch]['pov']]
         letters = ['\U0001F1E6','\U0001F1E7','\U0001F1E8','\U0001F1E9','\U0001F1EA',
-                   '\U0001F1EB','\U0001F1EC','\U0001F1ED','\U0001F1EE','\U0001F1EF'][:config.C[ch]['nPlayers']-1]
+                   '\U0001F1EB','\U0001F1EC','\U0001F1ED','\U0001F1EE','\U0001F1EF',
+                   '\U0001F1F0','\U0001F1F1','\U0001F1F2','\U0001F1F3','\U0001F1F4',
+                   '\U0001F1F5','\U0001F1F6','\U0001F1F7','\U0001F1F8','\U0001F1F9'][:config.C[ch]['nPlayers']-1]
     
         if config.done(ch) and config.C[ch]['msg'] != None and reaction.message.content == config.C[ch]['msg'].content and czar == user:
             if reaction.emoji in letters:
@@ -784,7 +786,7 @@ class Shard:
     
                     config.C[ch]['score'][p] += 1
                 
-                    msg = czar.display_name + ' selected ' + 'ABCDEFGHIJ'[letters.index(reaction.emoji)] + '.\n'
+                    msg = czar.display_name + ' selected ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[letters.index(reaction.emoji)] + '.\n'
                     msg += config.C[ch]['players'][p].display_name + ' wins the round!'
                     await ch.send(msg)
                     
@@ -801,59 +803,62 @@ class Shard:
         await self.client.wait_until_ready()
         
         while not self.client.is_closed():
-            channels = list(config.C.keys())
-            for ch in channels:
-                if config.C[ch]['started'] and 'time' in config.C[ch]:
-                    if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
-                        # reset timer
-                        config.C[ch]['time'] = time.time()
-                        
-                        if config.done(ch):
-                            try:
-                                # pick random letter
-                                l = len(config.C[ch]['mid'])
-                                if l == 0:
-                                    return
-                                else:
-                                    letter = random.randint(0, l-1)
-                                
-                                p = config.C[ch]['mid'][letter][1]
-                                config.C[ch]['score'][p] += 1
+            try:
+                channels = list(config.C.keys())
+                for ch in channels:
+                    if config.C[ch]['started'] and 'time' in config.C[ch]:
+                        if config.C[ch]['timer'] != 0 and time.time() - config.C[ch]['time'] >= config.C[ch]['timer']:
+                            # reset timer
+                            config.C[ch]['time'] = time.time()
                             
-                                msg = "**TIME'S UP!**\nThe bot randomly selected " + 'ABCDEFGHIJ'[letter] + '.\n'
-                                msg += config.C[ch]['players'][p].display_name + ' wins the round!'
-                                await ch.send(msg)
-                                await self.pass_(ch)
+                            if config.done(ch):
+                                try:
+                                    # pick random letter
+                                    l = len(config.C[ch]['mid'])
+                                    if l == 0:
+                                        return
+                                    else:
+                                        letter = random.randint(0, l-1)
+                                    
+                                    p = config.C[ch]['mid'][letter][1]
+                                    config.C[ch]['score'][p] += 1
                                 
-                                if config.C[ch]['win'] in config.C[ch]['score']:
-                                    await self.displayWinners(ch)
-                                    await config.reset(ch)
-                            except Exception as e:
-                                print('Error in timer_check at', time.asctime())
-                                print(e)
-                                # unknown channel/missing access
-                                if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
-                                    config.C.pop(ch)
-                        else:
-                            try:
-                                await ch.send("**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
-                            
-                                N = config.nCards(ch)
-                                for p in range(len(config.C[ch]['players'])):
-                                    if not config.C[ch]['played'][p] and config.C[ch]['pov'] != p:
-                                        cards = ''
-                                        for c in range(len(config.C[ch]['hands'][p])):
-                                            if config.C[ch]['hands'][p][c]:
-                                                cards += 'abcdefghijkl'[c]
-                                                if len(cards) == N:
-                                                    await self.play(ch, config.C[ch]['players'][p], cards)
-                                                    break
-                            except Exception as e:
-                                print('Error in timer_check at', time.asctime())
-                                print(e)
-                                # unknown channel/missing access
-                                if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
-                                    config.C.pop(ch)
+                                    msg = "**TIME'S UP!**\nThe bot randomly selected " + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[letter] + '.\n'
+                                    msg += config.C[ch]['players'][p].display_name + ' wins the round!'
+                                    await ch.send(msg)
+                                    await self.pass_(ch)
+                                    
+                                    if config.C[ch]['win'] in config.C[ch]['score']:
+                                        await self.displayWinners(ch)
+                                        await config.reset(ch)
+                                except Exception as e:
+                                    print('Error in timer_check at', time.asctime())
+                                    print(e)
+                                    # unknown channel/missing access
+                                    if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
+                                        config.C.pop(ch)
+                            else:
+                                try:
+                                    await ch.send("**TIME'S UP!**\nFor those who haven't played, cards will be automatically selected.")
+                                
+                                    N = config.nCards(ch)
+                                    for p in range(len(config.C[ch]['players'])):
+                                        if not config.C[ch]['played'][p] and config.C[ch]['pov'] != p:
+                                            cards = ''
+                                            for c in range(len(config.C[ch]['hands'][p])):
+                                                if config.C[ch]['hands'][p][c]:
+                                                    cards += 'abcdefghijklmnopqrstuvwxyz'[c]
+                                                    if len(cards) == N:
+                                                        await self.play(ch, config.C[ch]['players'][p], cards)
+                                                        break
+                                except Exception as e:
+                                    print('Error in timer_check at', time.asctime())
+                                    print(e)
+                                    # unknown channel/missing access
+                                    if 'unknown' in str(e).lower() or 'missing' in str(e).lower():
+                                        config.C.pop(ch)
+            except:
+                pass
             
             await asyncio.sleep(2)
     
