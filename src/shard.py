@@ -401,7 +401,7 @@ class Shard:
         if config.C[ch]['msg']: await config.C[ch]['msg'].edit(content=s)
     
     async def on_ready(self):
-        await self.client.change_presence(game=discord.Game(name='c!help'))
+        await self.client.change_presence(activity=discord.Game(name='c!help'))
         
         print('Ready')
 
