@@ -1,5 +1,9 @@
 changelog = \
-"""**4/11/19 Update:**
+"""**11/3/19 Update:**
+- Combined pre-game and in-game help messages
+- Added warning message when using `c!start` during an ongoing game
+
+**4/11/19 Update:**
 - Added warning message when using `c!add` before starting a game
 
 **3/6/19 Update:**

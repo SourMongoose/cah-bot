@@ -298,7 +298,7 @@ class Shard:
         
         try:
             #em = discord.Embed(description=msg, colour=0xBBBBBB)
-            if config.C[ch]['msg'] == None or config.done(ch):
+            if config.C[ch]['msg'] is None or config.done(ch):
                 #config.C[ch]['msg'] = await ch.send(embed=em)
                 config.C[ch]['msg'] = await ch.send(msg)
                 config.C[ch]['time'] = time.time()
@@ -509,7 +509,24 @@ class Shard:
             config.pre[ch.id] = msg[9]
             with open('prefix.txt', 'a') as f:
                 f.write(str(ch.id) + ' ' + msg[9] + '\n')
-        
+
+        # help message
+        if msg == c + '!help':
+            await ch.send((
+                "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!reset` to cancel an existing one.\n"
+                "Use `{0}!commands` to bring up a list of available commands.\n"
+                "For a list of frequently asked questions and general directions, use `{0}!faq`.\n\n"
+                "**During a game:**\n"
+                "To play white cards, use `{0}!play` followed by the letters next to the cards you want to play. "
+                "For example, `{0}!play b` would play card B, and `{0}!play df` would play cards D and F.\n"
+                "If you're the czar, react with the letter of your choice once everyone has played their cards. "
+                "If reacting does not work or no reactions show up, use `c!display` and try again.\n"
+                "To reset an ongoing game, use `{0}!reset`.\n"
+                "To leave an ongoing game, use `{0}!leave` or `{0}!quit`.\n"
+                "To join an ongoing game, use `{0}!join`.\n"
+                "To kick an AFK player, use `{0}!kick <player>`.\n"
+                "To refresh the scoreboard, use `c!display`.").format(c))
+
         if not config.C[ch]['started']:
             if config.C[ch]['admin']:
                 # Disable pre-game commands for users without Manage Channel permissions
@@ -527,13 +544,8 @@ class Shard:
                         config.C[ch]['lang'] = l
                         await ch.send('Language changed to ' + l + '.\n(Note: Only the base pack will be translated.)')
                         await self.edit_start_msg(ch)
-            
-            if msg == c+'!help':
-                await ch.send((
-                    "Use `{0}!start` to start a game of Cards Against Humanity, or `{0}!reset` to cancel an existing one.\n"
-                    "Use `{0}!commands` to bring up a list of available commands.\n"
-                    "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
-            elif msg == c+'!language english':
+
+            if msg == c+'!language english':
                 if config.C[ch]['lang'] != 'English':
                     config.C[ch]['lang'] = 'English'
                     await ch.send('Language changed to English.')
@@ -689,19 +701,9 @@ class Shard:
                 if msg == c+'!join' or (len(msg) > 6 and msg[:6] == c+'!add '):
                     await ch.send('Use `c!start` to start a game before joining or adding packs.')
         else:
-            if msg == c+'!help':
-                await ch.send((
-                    "To play white cards, use `{0}!play` followed by the letters next to the cards you want to play. "
-                    "For example, `{0}!play b` would play card B, and `{0}!play df` would play cards D and F.\n"
-                    "If you're the czar, react with the letter of your choice once everyone has played their cards.\n"
-                    "To reset an ongoing game, use `{0}!reset`.\n"
-                    "To leave an ongoing game, use `{0}!leave` or `{0}!quit`.\n"
-                    "To join an ongoing game, use `{0}!join`.\n"
-                    "To kick an AFK player, use `{0}!kick <player>`.\n"
-                    "To refresh the scoreboard, use `c!display`.\n\n"
-                    "Use `{0}!commands` to bring up a list of available commands.\n"
-                    "For a list of frequently asked questions and general directions, use `{0}!faq`.").format(c))
-            
+            if msg == c+'!start':
+                await ch.send('A game is already in progress.')
+
             # player commands
             if au in config.C[ch]['players']:
                 if msg == c+'!display':
@@ -779,7 +781,7 @@ class Shard:
                    '\U0001F1F0','\U0001F1F1','\U0001F1F2','\U0001F1F3','\U0001F1F4',
                    '\U0001F1F5','\U0001F1F6','\U0001F1F7','\U0001F1F8','\U0001F1F9'][:config.C[ch]['nPlayers']-1]
     
-        if config.done(ch) and config.C[ch]['msg'] != None and reaction.message.content == config.C[ch]['msg'].content and czar == user:
+        if config.done(ch) and not (config.C[ch]['msg'] is None) and reaction.message.content == config.C[ch]['msg'].content and czar == user:
             if reaction.emoji in letters:
                 try:
                     p = config.C[ch]['mid'][letters.index(reaction.emoji)][1]
