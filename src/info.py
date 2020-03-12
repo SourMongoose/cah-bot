@@ -1,5 +1,8 @@
 changelog = \
-"""**11/3/19 Update:**
+"""**12/21/19 Update:**
+- Added Hungarian as a language option
+
+**11/3/19 Update:**
 - Combined pre-game and in-game help messages
 - Added warning message when using `c!start` during an ongoing game
 

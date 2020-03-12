@@ -389,7 +389,8 @@ class Shard:
             "Use `{0}!setwin <#>` to change the number of points to win (current: "+str(config.C[ch]['win'])+')\n'
             "Use `{0}!timer <# sec>` to change the duration of the idle timer (current: "+str(config.C[ch]['timer'])+"), or use `c!timer 0` to disable it.\n"
             "Use `{0}!setblank <#>` to change the number of blank cards (max 30, current: "+str(config.C[ch]['blanks'])+')\n'
-            "Use `{0}!language <lang>` to change the language (current: "+str(config.C[ch]['lang'])+')\n'
+            "Use `{0}!language <lang>` to change the language of the base pack (current: "+str(config.C[ch]['lang'])+')\n'
+            "Supported languages: English, "+', '.join(config.languages.keys())+'\n'
             "Once everyone has joined, type `{0}!start` again to begin.").format(c)
         
         return s
@@ -780,8 +781,9 @@ class Shard:
                    '\U0001F1EB','\U0001F1EC','\U0001F1ED','\U0001F1EE','\U0001F1EF',
                    '\U0001F1F0','\U0001F1F1','\U0001F1F2','\U0001F1F3','\U0001F1F4',
                    '\U0001F1F5','\U0001F1F6','\U0001F1F7','\U0001F1F8','\U0001F1F9'][:config.C[ch]['nPlayers']-1]
-    
-        if config.done(ch) and not (config.C[ch]['msg'] is None) and reaction.message.content == config.C[ch]['msg'].content and czar == user:
+
+        #if config.done(ch) and not (config.C[ch]['msg'] is None) and reaction.message.content == config.C[ch]['msg'].content and czar.id == user.id:
+        if config.done(ch) and czar.id == user.id:
             if reaction.emoji in letters:
                 try:
                     p = config.C[ch]['mid'][letters.index(reaction.emoji)][1]

@@ -69,7 +69,8 @@ languages = {
     "Portuguese": "pt",
     "Spanish": "sp",
     "German": "de",
-    "French": "fr"
+    "French": "fr",
+    "Hungarian": "hu"
 }
 
 C = {} # channel dict
